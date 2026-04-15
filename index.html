@@ -107,17 +107,17 @@ async function cargarDatos() {
       const c = (r.c || []).map(x => x ? x.v : "");
 
       return {
-        tipo: c[1] || "",
-        doc: c[2] || "",
-        nombre: c[3] || "",
-        rol: c[4] || "",
-        entidad: c[5] || "",
-        placa: c[6] || "",
-        contacto: c[8] || "",
-        emergencia: c[9] || "",
-        destino: c[10] || "",     // ✅ CORRECTO
-        parentesco: c[11] || ""   // ✅ CORRECTO
-      };
+  tipo: limpiarTexto(c[1]),
+  doc: limpiarTexto(c[2]),
+  nombre: limpiarTexto(c[3]),
+  rol: limpiarTexto(c[4]),
+  entidad: limpiarTexto(c[5]),
+  placa: limpiarTexto(c[6]),
+  contacto: limpiarTexto(c[8]),
+  emergencia: limpiarTexto(c[9]),
+  destino: limpiarTexto(c[10]),
+  parentesco: normalizarParentesco(c[11]) // 🔥 AQUÍ
+};
     });
 
     console.log("✔ Datos cargados:", data.length);
@@ -132,6 +132,16 @@ window.onload = cargarDatos;
 
 function limpiar(doc) {
   return String(doc || "").replace(/\s+/g, "").trim();
+}
+function normalizarParentesco(valor) {
+  const v = limpiarTexto(valor).toLowerCase();
+
+  if (v.includes("espos")) return "Esposa/o";
+  if (v.includes("hij")) return "Hija/o";
+  if (v.includes("herman")) return "Hermana/o";
+  if (v.includes("amig")) return "Amiga/o";
+
+  return "Otros:";
 }
 
 function getUser() {
