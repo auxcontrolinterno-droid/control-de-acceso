@@ -4,7 +4,6 @@
   <title>Control de Acceso</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Fuente moderna -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
@@ -19,7 +18,6 @@
       background: white;
       padding: 10px 0;
       border-bottom: 2px solid #0b3d91;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
     .header img {
@@ -38,9 +36,15 @@
     }
 
     h2 {
-      margin-bottom: 20px;
-      font-weight: 600;
+      margin-bottom: 10px;
       color: #0b3d91;
+    }
+
+    .mensaje {
+      font-size: 13px;
+      color: #444;
+      margin-bottom: 15px;
+      min-height: 20px;
     }
 
     input {
@@ -48,15 +52,7 @@
       padding: 12px;
       border-radius: 10px;
       border: 1px solid #ccc;
-      font-size: 15px;
       margin-bottom: 18px;
-      outline: none;
-      transition: 0.2s;
-    }
-
-    input:focus {
-      border-color: #0b3d91;
-      box-shadow: 0 0 0 2px rgba(11,61,145,0.1);
     }
 
     .btn {
@@ -68,38 +64,15 @@
       font-size: 15px;
       margin-bottom: 12px;
       cursor: pointer;
-      transition: 0.2s;
     }
 
-    .btn:hover {
-      transform: scale(1.02);
-    }
-
-    .ingreso {
-      background: #0b3d91;
-    }
-
-    .ingreso:hover {
-      background: #092f6f;
-    }
-
-    .salida {
-      background: #c62828;
-    }
-
-    .salida:hover {
-      background: #a61e1e;
-    }
+    .ingreso { background: #0b3d91; }
+    .salida { background: #c62828; }
 
     .footer {
       font-size: 11px;
       margin-top: 20px;
       color: #555;
-      line-height: 1.4;
-    }
-
-    .footer b {
-      color: #0b3d91;
     }
   </style>
 </head>
@@ -114,10 +87,12 @@
 
   <h2>Control de Acceso</h2>
 
+  <div class="mensaje" id="mensaje"></div>
+
   <input id="docInput" placeholder="Número de documento">
 
-  <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
-  <button class="btn salida" onclick="irSalida()">Salida</button>
+  <button class="btn ingreso" onclick="irIngreso()">➡️ Ingreso</button>
+  <button class="btn salida" onclick="irSalida()">⬅️ Salida</button>
 
   <div class="footer">
     <div><b>DEPARTAMENTO DE CONTROL INTERNO DE SEGURIDAD E INFRAESTRUCTURA</b></div>
@@ -128,50 +103,40 @@
 
 <script>
 
-// 🔥 TU MISMO SCRIPT (NO TOCAR)
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
 let data = [];
 
 async function cargarDatos() {
-  try {
-    const res = await fetch(SHEET_URL);
-    const text = await res.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
+  const res = await fetch(SHEET_URL);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(47).slice(0, -2));
 
-    data = json.table.rows.map(r => {
-      const c = (r.c || []).map(x => x ? x.v : "");
+  data = json.table.rows.map(r => {
+    const c = (r.c || []).map(x => x ? x.v : "");
 
-      return {
-        tipo: limpiarTexto(c[1]),
-        doc: limpiarTexto(c[2]),
-        nombre: limpiarTexto(c[3]),
-        rol: limpiarTexto(c[4]),
-        entidad: limpiarTexto(c[5]),
-        placa: limpiarTexto(c[6]),
-        contacto: limpiarTexto(c[8]),
-        emergencia: limpiarTexto(c[9]),
-        parentesco: normalizarParentesco(c[11])
-      };
-    });
-
-  } catch (e) {
-    alert("Error cargando base de datos");
-  }
+    return {
+      tipo: c[1],
+      doc: limpiar(c[2]),
+      nombre: c[3],
+      contacto: c[8],
+      rol: c[4],
+      entidad: c[5],
+      placa: c[6],
+      emergencia: c[9],
+      parentesco: normalizarParentesco(c[11])
+    };
+  });
 }
 
 window.onload = cargarDatos;
 
-function limpiarTexto(texto) {
-  return String(texto || "").replace(/\s+/g, " ").trim();
+function limpiar(t) {
+  return String(t || "").replace(/\s+/g, "").trim();
 }
 
-function limpiarDoc(doc) {
-  return String(doc || "").replace(/\s+/g, "").trim();
-}
-
-function normalizarParentesco(valor) {
-  const v = limpiarTexto(valor).toLowerCase();
+function normalizarParentesco(v) {
+  v = String(v || "").toLowerCase();
 
   if (v.includes("espos")) return "Esposa/o";
   if (v.includes("hij")) return "Hija/o";
@@ -182,11 +147,31 @@ function normalizarParentesco(valor) {
 }
 
 function getUser() {
-  const doc = limpiarDoc(document.getElementById("docInput").value);
+  const doc = limpiar(document.getElementById("docInput").value);
   if (!doc) return null;
-  return data.find(u => limpiarDoc(u.doc) === doc);
+  return data.find(u => u.doc === doc);
 }
 
+// 🔥 MENSAJE DINÁMICO
+document.getElementById("docInput").addEventListener("input", function() {
+
+  const user = getUser();
+  const mensaje = document.getElementById("mensaje");
+
+  if (!this.value) {
+    mensaje.innerText = "";
+    return;
+  }
+
+  if (user) {
+    const nombre = user.nombre.split(" ")[0];
+    mensaje.innerText = "Bienvenido nuevamente, " + nombre + " 👋";
+  } else {
+    mensaje.innerText = "Bienvenido a nuestras instalaciones, por favor registre sus datos 😊";
+  }
+});
+
+// ================= INGRESO =================
 function irIngreso() {
 
   const input = document.getElementById("docInput").value.trim();
@@ -221,6 +206,7 @@ function irIngreso() {
   window.location.href = url;
 }
 
+// ================= SALIDA =================
 function irSalida() {
 
   const input = document.getElementById("docInput").value.trim();
@@ -254,10 +240,6 @@ function irSalida() {
 
   window.location.href = url;
 }
-
-document.getElementById("docInput").addEventListener("keypress", function(e) {
-  if (e.key === "Enter") irIngreso();
-});
 
 </script>
 
