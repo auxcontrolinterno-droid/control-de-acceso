@@ -19,36 +19,42 @@
     }
 
     .header img {
-      width: 70%;
-      max-width: 260px;
+      width: 65%;
+      max-width: 240px;
     }
 
     .container {
       background: white;
       width: 90%;
-      max-width: 380px;
+      max-width: 360px;
       margin: 20px auto;
-      padding: 25px;
-      border-radius: 16px;
+      padding: 20px;
+      border-radius: 14px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-bottom: 15px;
+      font-size: 20px;
     }
 
     input {
       width: 100%;
-      padding: 14px;
-      border-radius: 10px;
+      padding: 10px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 16px;
-      margin-bottom: 20px;
+      font-size: 15px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
     }
 
     .btn {
       width: 100%;
-      padding: 14px;
+      padding: 12px;
       border: none;
       border-radius: 10px;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
       margin-bottom: 10px;
       cursor: pointer;
     }
@@ -98,33 +104,46 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7
 let data = [];
 
 async function cargarDatos() {
-  const res = await fetch(SHEET_URL);
-  const text = await res.text();
-  const json = JSON.parse(text.substr(47).slice(0, -2));
+  try {
+    const res = await fetch(SHEET_URL);
+    const text = await res.text();
+    const json = JSON.parse(text.substr(47).slice(0, -2));
 
-  data = json.table.rows.map(r => ({
-    tipo: r.c[1]?.v,
-    doc: r.c[2]?.v,
-    nombre: r.c[3]?.v,
-    rol: r.c[4]?.v,
-    entidad: r.c[5]?.v,
-    placa: r.c[6]?.v,
-    contacto: r.c[8]?.v,
-    emergencia: r.c[9]?.v,
-    parentesco: r.c[11]?.v,
-    destino: r.c[10]?.v
-  }));
+    data = json.table.rows.map(r => ({
+      tipo: r.c[1]?.v,
+      doc: r.c[2]?.v,
+      nombre: r.c[3]?.v,
+      rol: r.c[4]?.v,
+      entidad: r.c[5]?.v,
+      placa: r.c[6]?.v,
+      contacto: r.c[8]?.v,
+      emergencia: r.c[9]?.v,
+      parentesco: r.c[11]?.v,
+      destino: r.c[10]?.v
+    }));
+
+  } catch (error) {
+    alert("Error cargando datos");
+  }
 }
 
 cargarDatos();
 
+function limpiarDoc(doc) {
+  return String(doc || "").replace(/\s+/g, "").trim();
+}
+
 function getUser() {
-  const doc = document.getElementById("docInput").value;
+  let doc = document.getElementById("docInput").value;
+
   if (!doc) {
     alert("Ingrese documento");
     return null;
   }
-  return data.find(u => u.doc == doc);
+
+  doc = limpiarDoc(doc);
+
+  return data.find(u => limpiarDoc(u.doc) === doc);
 }
 
 function irIngreso() {
@@ -134,6 +153,7 @@ function irIngreso() {
   const formBase = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
   if (user) {
+
     const url = formBase +
       "?usp=pp_url" +
       "&entry.2083119061=" + encodeURIComponent(user.tipo || "") +
@@ -181,6 +201,13 @@ function irSalida() {
     alert("Usuario no encontrado en la base de datos");
   }
 }
+
+// 🔥 ENTER = INGRESO
+document.getElementById("docInput").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    irIngreso();
+  }
+});
 
 </script>
 
