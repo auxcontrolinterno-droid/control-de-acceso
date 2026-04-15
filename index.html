@@ -101,24 +101,24 @@ async function cargarDatos() {
   try {
     const res = await fetch(SHEET_URL);
     const text = await res.text();
-
     const json = JSON.parse(text.substring(47).slice(0, -2));
 
     data = json.table.rows.map(r => {
       const c = (r.c || []).map(x => x ? x.v : "");
 
       return {
-  tipo: c[1] || "",
-  doc: c[2] || "",
-  nombre: c[3] || "",
-  rol: c[4] || "",
-  entidad: c[5] || "",
-  placa: c[6] || "",
-  contacto: c[8] || "",
-  emergencia: c[9] || "",
-  destino: c[10] || "",     // ✅ CORRECTO
-  parentesco: c[11] || ""   // ✅ CORRECTO
-};
+        tipo: c[1] || "",
+        doc: c[2] || "",
+        nombre: c[3] || "",
+        rol: c[4] || "",
+        entidad: c[5] || "",
+        placa: c[6] || "",
+        contacto: c[8] || "",
+        emergencia: c[9] || "",
+        destino: c[10] || "",     // ✅ CORRECTO
+        parentesco: c[11] || ""   // ✅ CORRECTO
+      };
+    });
 
     console.log("✔ Datos cargados:", data.length);
 
@@ -133,34 +133,28 @@ window.onload = cargarDatos;
 function limpiar(doc) {
   return String(doc || "").replace(/\s+/g, "").trim();
 }
+
 function getUser() {
-  let doc = document.getElementById("docInput").value;
+  let doc = document.getElementById("docInput").value.trim();
 
-  doc = String(doc || "").trim();
+  if (!doc) return null;
 
-  if (!doc) {
-    alert("Debe ingresar un número de documento");
-    return false; // 🔥 IMPORTANTE
-  }
+  doc = limpiar(doc);
 
-  doc = doc.replace(/\s+/g, "");
-
-  const user = data.find(u =>
-    String(u.doc).replace(/\s+/g, "").trim() === doc
-  );
-
-  console.log("BUSCANDO:", doc);
-  console.log("RESULTADO:", user);
-
-  return user || null;
+  return data.find(u => limpiar(u.doc) === doc);
 }
 
 // ================= INGRESO =================
 function irIngreso() {
 
-  const user = getUser();
+  const input = document.getElementById("docInput").value.trim();
 
-  if (user === false) return; // 🔥 BLOQUEA TODO
+  if (!input) {
+    alert("Debe ingresar un número de documento");
+    return;
+  }
+
+  const user = getUser();
 
   const formBase = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
@@ -180,17 +174,23 @@ function irIngreso() {
     "&entry.1527361506=" + encodeURIComponent(user.entidad) +
     "&entry.1268448003=" + encodeURIComponent(user.placa) +
     "&entry.1316902717=" + encodeURIComponent(user.emergencia) +
-    "&entry.539345216=" + encodeURIComponent(user.parentesco) +
-    "&entry.1651701540=" + encodeURIComponent(user.destino);
+    "&entry.539345216=" + encodeURIComponent(user.parentesco) + // ✅
+    "&entry.1651701540=" + encodeURIComponent(user.destino);    // ✅
 
   window.location.href = url;
 }
+
 // ================= SALIDA =================
 function irSalida() {
 
-  const user = getUser();
+  const input = document.getElementById("docInput").value.trim();
 
-  if (user === false) return; // 🔥 BLOQUEA
+  if (!input) {
+    alert("Debe ingresar un número de documento");
+    return;
+  }
+
+  const user = getUser();
 
   if (!user) {
     alert("Usuario no encontrado en la base de datos");
@@ -210,13 +210,13 @@ function irSalida() {
     "&entry.2053464900=" + encodeURIComponent(user.entidad) +
     "&entry.335364680=" + encodeURIComponent(user.placa) +
     "&entry.1230591168=" + encodeURIComponent(user.emergencia) +
-    "&entry.620468493=" + encodeURIComponent(user.parentesco) +
-    "&entry.667492231=" + encodeURIComponent(user.destino);
+    "&entry.620468493=" + encodeURIComponent(user.parentesco) + // ✅
+    "&entry.667492231=" + encodeURIComponent(user.destino);     // ✅
 
   window.location.href = url;
 }
 
-// ENTER = ingreso automático
+// ENTER = ingreso
 document.getElementById("docInput").addEventListener("keypress", function(e) {
   if (e.key === "Enter") irIngreso();
 });
