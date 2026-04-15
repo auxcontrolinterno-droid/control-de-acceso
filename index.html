@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Control de Acceso</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e9eef5;
+      margin: 0;
+      text-align: center;
+    }
+
+    .header {
+      background: white;
+      padding: 5px 0;
+      border-bottom: 2px solid #0b3d91;
+    }
+
+    .header img {
+      width: 70%;
+      max-width: 260px;
+    }
+
+    .container {
+      background: white;
+      width: 90%;
+      max-width: 380px;
+      margin: 20px auto;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .ingreso {
+      background: #0b3d91;
+    }
+
+    .salida {
+      background: #c62828;
+    }
+
+    .footer {
+      font-size: 11px;
+      margin: 20px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="header">
+  <img src="https://i.imgur.com/OB279U8.jpeg">
+</div>
+
+<div class="container">
+
+  <h2>Control de Acceso</h2>
+
+  <input id="docInput" placeholder="Número de documento">
+
+  <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
+  <button class="btn salida" onclick="irSalida()">Salida</button>
+
+</div>
+
+<div class="footer">
+  <div><b>DEPARTAMENTO DE CONTROL INTERNO DE SEGURIDAD E INFRAESTRUCTURA</b></div>
+  <div>CORPORACION COLEGIO INTERNACIONAL ALTAMIRA</div>
+</div>
+
+<script>
+
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?tqx=out:json";
+
+let data = [];
+
+async function cargarDatos() {
+  const res = await fetch(SHEET_URL);
+  const text = await res.text();
+  const json = JSON.parse(text.substr(47).slice(0, -2));
+
+  data = json.table.rows.map(r => ({
+    tipo: r.c[1]?.v,
+    doc: r.c[2]?.v,
+    nombre: r.c[3]?.v,
+    rol: r.c[4]?.v,
+    entidad: r.c[5]?.v,
+    placa: r.c[6]?.v,
+    contacto: r.c[8]?.v,
+    emergencia: r.c[9]?.v,
+    parentesco: r.c[11]?.v,
+    destino: r.c[10]?.v
+  }));
+}
+
+cargarDatos();
+
+function getUser() {
+  const doc = document.getElementById("docInput").value;
+  if (!doc) {
+    alert("Ingrese documento");
+    return null;
+  }
+  return data.find(u => u.doc == doc);
+}
+
+function irIngreso() {
+
+  const user = getUser();
+
+  const formBase = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
+
+  if (user) {
+    const url = formBase +
+      "?usp=pp_url" +
+      "&entry.2083119061=" + encodeURIComponent(user.tipo || "") +
+      "&entry.311902120=" + encodeURIComponent(user.doc || "") +
+      "&entry.1899230705=" + encodeURIComponent(user.nombre || "") +
+      "&entry.477144471=" + encodeURIComponent(user.contacto || "") +
+      "&entry.2145689969=" + encodeURIComponent(user.rol || "") +
+      "&entry.1527361506=" + encodeURIComponent(user.entidad || "") +
+      "&entry.1268448003=" + encodeURIComponent(user.placa || "") +
+      "&entry.1316902717=" + encodeURIComponent(user.emergencia || "") +
+      "&entry.539345216=" + encodeURIComponent(user.parentesco || "") +
+      "&entry.1651701540=" + encodeURIComponent(user.destino || "");
+
+    window.location.href = url;
+
+  } else {
+    window.location.href = formBase;
+  }
+}
+
+function irSalida() {
+
+  const user = getUser();
+
+  const formSalida = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
+
+  if (user) {
+
+    const url = formSalida +
+      "?usp=pp_url" +
+      "&entry.861901166=" + encodeURIComponent(user.tipo || "") +
+      "&entry.1077137573=" + encodeURIComponent(user.doc || "") +
+      "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
+      "&entry.666367411=" + encodeURIComponent(user.contacto || "") +
+      "&entry.2097525574=" + encodeURIComponent(user.rol || "") +
+      "&entry.2053464900=" + encodeURIComponent(user.entidad || "") +
+      "&entry.335364680=" + encodeURIComponent(user.placa || "") +
+      "&entry.1230591168=" + encodeURIComponent(user.emergencia || "") +
+      "&entry.620468493=" + encodeURIComponent(user.parentesco || "") +
+      "&entry.667492231=" + encodeURIComponent(user.destino || "");
+
+    window.location.href = url;
+
+  } else {
+    alert("Usuario no encontrado en la base de datos");
+  }
+}
+
+</script>
+
+</body>
+</html>
