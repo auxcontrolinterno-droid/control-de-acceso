@@ -108,18 +108,17 @@ async function cargarDatos() {
       const c = (r.c || []).map(x => x ? x.v : "");
 
       return {
-        tipo: c[1] || "",
-        doc: c[2] || "",
-        nombre: c[3] || "",
-        rol: c[4] || "",
-        entidad: c[5] || "",
-        placa: c[6] || "",
-        contacto: c[8] || "",
-        emergencia: c[9] || "",
-        parentesco: c[10] || "",
-        destino: c[11] || ""
-      };
-    });
+  tipo: c[1] || "",
+  doc: c[2] || "",
+  nombre: c[3] || "",
+  rol: c[4] || "",
+  entidad: c[5] || "",
+  placa: c[6] || "",
+  contacto: c[8] || "",
+  emergencia: c[9] || "",
+  destino: c[10] || "",     // ✅ CORRECTO
+  parentesco: c[11] || ""   // ✅ CORRECTO
+};
 
     console.log("✔ Datos cargados:", data.length);
 
@@ -134,29 +133,34 @@ window.onload = cargarDatos;
 function limpiar(doc) {
   return String(doc || "").replace(/\s+/g, "").trim();
 }
-
 function getUser() {
   let doc = document.getElementById("docInput").value;
 
+  doc = String(doc || "").trim();
+
   if (!doc) {
-    alert("Ingrese documento");
-    return null;
+    alert("Debe ingresar un número de documento");
+    return false; // 🔥 IMPORTANTE
   }
 
-  doc = limpiar(doc);
+  doc = doc.replace(/\s+/g, "");
 
-  const user = data.find(u => limpiar(u.doc) === doc);
+  const user = data.find(u =>
+    String(u.doc).replace(/\s+/g, "").trim() === doc
+  );
 
   console.log("BUSCANDO:", doc);
   console.log("RESULTADO:", user);
 
-  return user;
+  return user || null;
 }
 
 // ================= INGRESO =================
 function irIngreso() {
 
   const user = getUser();
+
+  if (user === false) return; // 🔥 BLOQUEA TODO
 
   const formBase = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
@@ -181,11 +185,12 @@ function irIngreso() {
 
   window.location.href = url;
 }
-
 // ================= SALIDA =================
 function irSalida() {
 
   const user = getUser();
+
+  if (user === false) return; // 🔥 BLOQUEA
 
   if (!user) {
     alert("Usuario no encontrado en la base de datos");
