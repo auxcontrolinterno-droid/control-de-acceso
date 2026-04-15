@@ -39,13 +39,12 @@
     }
 
     input {
-      width: 100%;
+      width: 70%;   /* 🔥 MÁS CORTO COMO PEDISTE */
       padding: 10px;
       border-radius: 8px;
       border: 1px solid #ccc;
       font-size: 15px;
       margin-bottom: 15px;
-      box-sizing: border-box;
     }
 
     .btn {
@@ -59,13 +58,8 @@
       cursor: pointer;
     }
 
-    .ingreso {
-      background: #0b3d91;
-    }
-
-    .salida {
-      background: #c62828;
-    }
+    .ingreso { background: #0b3d91; }
+    .salida { background: #c62828; }
 
     .footer {
       font-size: 11px;
@@ -99,35 +93,38 @@
 
 <script>
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?tqx=out:json";
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
 let data = [];
 
+// 🔥 carga segura
 async function cargarDatos() {
   try {
     const res = await fetch(SHEET_URL);
     const text = await res.text();
-    const json = JSON.parse(text.substr(47).slice(0, -2));
+
+    const json = JSON.parse(text.substring(47).slice(0, -2));
 
     data = json.table.rows.map(r => ({
-      tipo: r.c[1]?.v,
-      doc: r.c[2]?.v,
-      nombre: r.c[3]?.v,
-      rol: r.c[4]?.v,
-      entidad: r.c[5]?.v,
-      placa: r.c[6]?.v,
-      contacto: r.c[8]?.v,
-      emergencia: r.c[9]?.v,
-      parentesco: r.c[11]?.v,
-      destino: r.c[10]?.v
+      tipo: r.c[1]?.v || "",
+      doc: r.c[2]?.v || "",
+      nombre: r.c[3]?.v || "",
+      rol: r.c[4]?.v || "",
+      entidad: r.c[5]?.v || "",
+      placa: r.c[6]?.v || "",
+      contacto: r.c[8]?.v || "",
+      emergencia: r.c[9]?.v || "",
+      parentesco: r.c[11]?.v || "",
+      destino: r.c[10]?.v || ""
     }));
 
-  } catch (error) {
-    alert("Error cargando datos");
+    console.log("Datos cargados:", data.length);
+
+  } catch (e) {
+    console.error(e);
+    alert("Error cargando la base de datos");
   }
 }
-
-cargarDatos();
 
 function limpiarDoc(doc) {
   return String(doc || "").replace(/\s+/g, "").trim();
@@ -143,7 +140,11 @@ function getUser() {
 
   doc = limpiarDoc(doc);
 
-  return data.find(u => limpiarDoc(u.doc) === doc);
+  const user = data.find(u => limpiarDoc(u.doc) === doc);
+
+  console.log("Usuario encontrado:", user);
+
+  return user;
 }
 
 function irIngreso() {
@@ -152,26 +153,26 @@ function irIngreso() {
 
   const formBase = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
-  if (user) {
-
-    const url = formBase +
-      "?usp=pp_url" +
-      "&entry.2083119061=" + encodeURIComponent(user.tipo || "") +
-      "&entry.311902120=" + encodeURIComponent(user.doc || "") +
-      "&entry.1899230705=" + encodeURIComponent(user.nombre || "") +
-      "&entry.477144471=" + encodeURIComponent(user.contacto || "") +
-      "&entry.2145689969=" + encodeURIComponent(user.rol || "") +
-      "&entry.1527361506=" + encodeURIComponent(user.entidad || "") +
-      "&entry.1268448003=" + encodeURIComponent(user.placa || "") +
-      "&entry.1316902717=" + encodeURIComponent(user.emergencia || "") +
-      "&entry.539345216=" + encodeURIComponent(user.parentesco || "") +
-      "&entry.1651701540=" + encodeURIComponent(user.destino || "");
-
-    window.location.href = url;
-
-  } else {
+  if (!user) {
     window.location.href = formBase;
+    return;
   }
+
+  const url =
+    formBase +
+    "?usp=pp_url" +
+    "&entry.2083119061=" + encodeURIComponent(user.tipo) +
+    "&entry.311902120=" + encodeURIComponent(user.doc) +
+    "&entry.1899230705=" + encodeURIComponent(user.nombre) +
+    "&entry.477144471=" + encodeURIComponent(user.contacto) +
+    "&entry.2145689969=" + encodeURIComponent(user.rol) +
+    "&entry.1527361506=" + encodeURIComponent(user.entidad) +
+    "&entry.1268448003=" + encodeURIComponent(user.placa) +
+    "&entry.1316902717=" + encodeURIComponent(user.emergencia) +
+    "&entry.539345216=" + encodeURIComponent(user.parentesco) +
+    "&entry.1651701540=" + encodeURIComponent(user.destino);
+
+  window.location.href = url;
 }
 
 function irSalida() {
@@ -180,34 +181,35 @@ function irSalida() {
 
   const formSalida = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
 
-  if (user) {
-
-    const url = formSalida +
-      "?usp=pp_url" +
-      "&entry.861901166=" + encodeURIComponent(user.tipo || "") +
-      "&entry.1077137573=" + encodeURIComponent(user.doc || "") +
-      "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
-      "&entry.666367411=" + encodeURIComponent(user.contacto || "") +
-      "&entry.2097525574=" + encodeURIComponent(user.rol || "") +
-      "&entry.2053464900=" + encodeURIComponent(user.entidad || "") +
-      "&entry.335364680=" + encodeURIComponent(user.placa || "") +
-      "&entry.1230591168=" + encodeURIComponent(user.emergencia || "") +
-      "&entry.620468493=" + encodeURIComponent(user.parentesco || "") +
-      "&entry.667492231=" + encodeURIComponent(user.destino || "");
-
-    window.location.href = url;
-
-  } else {
+  if (!user) {
     alert("Usuario no encontrado en la base de datos");
+    return;
   }
+
+  const url =
+    formSalida +
+    "?usp=pp_url" +
+    "&entry.861901166=" + encodeURIComponent(user.tipo) +
+    "&entry.1077137573=" + encodeURIComponent(user.doc) +
+    "&entry.232043619=" + encodeURIComponent(user.nombre) +
+    "&entry.666367411=" + encodeURIComponent(user.contacto) +
+    "&entry.2097525574=" + encodeURIComponent(user.rol) +
+    "&entry.2053464900=" + encodeURIComponent(user.entidad) +
+    "&entry.335364680=" + encodeURIComponent(user.placa) +
+    "&entry.1230591168=" + encodeURIComponent(user.emergencia) +
+    "&entry.620468493=" + encodeURIComponent(user.parentesco) +
+    "&entry.667492231=" + encodeURIComponent(user.destino);
+
+  window.location.href = url;
 }
 
-// 🔥 ENTER = INGRESO
+// ENTER = ingreso
 document.getElementById("docInput").addEventListener("keypress", function(e) {
-  if (e.key === "Enter") {
-    irIngreso();
-  }
+  if (e.key === "Enter") irIngreso();
 });
+
+// 🔥 importante: esperar carga real
+window.onload = cargarDatos;
 
 </script>
 
