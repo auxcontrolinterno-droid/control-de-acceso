@@ -39,7 +39,7 @@
     }
 
     input {
-      width: 70%;   /* 🔥 MÁS CORTO COMO PEDISTE */
+      width: 70%;
       padding: 10px;
       border-radius: 8px;
       border: 1px solid #ccc;
@@ -97,7 +97,6 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7
 
 let data = [];
 
-// 🔥 carga segura
 async function cargarDatos() {
   try {
     const res = await fetch(SHEET_URL);
@@ -105,28 +104,34 @@ async function cargarDatos() {
 
     const json = JSON.parse(text.substring(47).slice(0, -2));
 
-    data = json.table.rows.map(r => ({
-      tipo: r.c[1]?.v || "",
-      doc: r.c[2]?.v || "",
-      nombre: r.c[3]?.v || "",
-      rol: r.c[4]?.v || "",
-      entidad: r.c[5]?.v || "",
-      placa: r.c[6]?.v || "",
-      contacto: r.c[8]?.v || "",
-      emergencia: r.c[9]?.v || "",
-      parentesco: r.c[11]?.v || "",
-      destino: r.c[10]?.v || ""
-    }));
+    data = json.table.rows.map(r => {
+      const c = (r.c || []).map(x => x ? x.v : "");
 
-    console.log("Datos cargados:", data.length);
+      return {
+        tipo: c[1] || "",
+        doc: c[2] || "",
+        nombre: c[3] || "",
+        rol: c[4] || "",
+        entidad: c[5] || "",
+        placa: c[6] || "",
+        contacto: c[8] || "",
+        emergencia: c[9] || "",
+        parentesco: c[10] || "",
+        destino: c[11] || ""
+      };
+    });
+
+    console.log("✔ Datos cargados:", data.length);
 
   } catch (e) {
     console.error(e);
-    alert("Error cargando la base de datos");
+    alert("Error cargando base de datos");
   }
 }
 
-function limpiarDoc(doc) {
+window.onload = cargarDatos;
+
+function limpiar(doc) {
   return String(doc || "").replace(/\s+/g, "").trim();
 }
 
@@ -138,15 +143,17 @@ function getUser() {
     return null;
   }
 
-  doc = limpiarDoc(doc);
+  doc = limpiar(doc);
 
-  const user = data.find(u => limpiarDoc(u.doc) === doc);
+  const user = data.find(u => limpiar(u.doc) === doc);
 
-  console.log("Usuario encontrado:", user);
+  console.log("BUSCANDO:", doc);
+  console.log("RESULTADO:", user);
 
   return user;
 }
 
+// ================= INGRESO =================
 function irIngreso() {
 
   const user = getUser();
@@ -175,16 +182,17 @@ function irIngreso() {
   window.location.href = url;
 }
 
+// ================= SALIDA =================
 function irSalida() {
 
   const user = getUser();
-
-  const formSalida = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
 
   if (!user) {
     alert("Usuario no encontrado en la base de datos");
     return;
   }
+
+  const formSalida = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
 
   const url =
     formSalida +
@@ -203,13 +211,10 @@ function irSalida() {
   window.location.href = url;
 }
 
-// ENTER = ingreso
+// ENTER = ingreso automático
 document.getElementById("docInput").addEventListener("keypress", function(e) {
   if (e.key === "Enter") irIngreso();
 });
-
-// 🔥 importante: esperar carga real
-window.onload = cargarDatos;
 
 </script>
 
