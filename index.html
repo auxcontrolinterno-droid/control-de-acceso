@@ -4,60 +4,102 @@
   <title>Control de Acceso</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- Fuente moderna -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #e9eef5;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e9eef5, #dfe7f1);
       margin: 0;
       text-align: center;
     }
 
     .header {
       background: white;
-      padding: 5px 0;
+      padding: 10px 0;
       border-bottom: 2px solid #0b3d91;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
     .header img {
-      width: 65%;
-      max-width: 240px;
+      width: 55%;
+      max-width: 200px;
     }
 
     .container {
       background: white;
       width: 90%;
-      max-width: 360px;
-      margin: 20px auto;
-      padding: 20px;
-      border-radius: 14px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      max-width: 380px;
+      margin: 30px auto;
+      padding: 25px;
+      border-radius: 18px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: #0b3d91;
     }
 
     input {
-      width: 70%;
-      padding: 10px;
-      border-radius: 8px;
+      width: 80%;
+      padding: 12px;
+      border-radius: 10px;
       border: 1px solid #ccc;
-      margin-bottom: 15px;
+      font-size: 15px;
+      margin-bottom: 18px;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    input:focus {
+      border-color: #0b3d91;
+      box-shadow: 0 0 0 2px rgba(11,61,145,0.1);
     }
 
     .btn {
       width: 100%;
-      padding: 12px;
+      padding: 13px;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       color: white;
-      margin-bottom: 10px;
+      font-size: 15px;
+      margin-bottom: 12px;
       cursor: pointer;
+      transition: 0.2s;
     }
 
-    .ingreso { background: #0b3d91; }
-    .salida { background: #c62828; }
+    .btn:hover {
+      transform: scale(1.02);
+    }
+
+    .ingreso {
+      background: #0b3d91;
+    }
+
+    .ingreso:hover {
+      background: #092f6f;
+    }
+
+    .salida {
+      background: #c62828;
+    }
+
+    .salida:hover {
+      background: #a61e1e;
+    }
 
     .footer {
       font-size: 11px;
-      margin-top: 15px;
-      text-transform: uppercase;
+      margin-top: 20px;
+      color: #555;
+      line-height: 1.4;
+    }
+
+    .footer b {
+      color: #0b3d91;
     }
   </style>
 </head>
@@ -69,6 +111,7 @@
 </div>
 
 <div class="container">
+
   <h2>Control de Acceso</h2>
 
   <input id="docInput" placeholder="Número de documento">
@@ -76,7 +119,6 @@
   <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
   <button class="btn salida" onclick="irSalida()">Salida</button>
 
-  <!-- 🔥 FOOTER RESTAURADO -->
   <div class="footer">
     <div><b>DEPARTAMENTO DE CONTROL INTERNO DE SEGURIDAD E INFRAESTRUCTURA</b></div>
     <div>CORPORACION COLEGIO INTERNACIONAL ALTAMIRA</div>
@@ -86,6 +128,7 @@
 
 <script>
 
+// 🔥 TU MISMO SCRIPT (NO TOCAR)
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
 let data = [];
@@ -119,7 +162,6 @@ async function cargarDatos() {
 
 window.onload = cargarDatos;
 
-// ================= UTIL =================
 function limpiarTexto(texto) {
   return String(texto || "").replace(/\s+/g, " ").trim();
 }
@@ -128,7 +170,6 @@ function limpiarDoc(doc) {
   return String(doc || "").replace(/\s+/g, "").trim();
 }
 
-// ================= PARENTESCO =================
 function normalizarParentesco(valor) {
   const v = limpiarTexto(valor).toLowerCase();
 
@@ -140,16 +181,12 @@ function normalizarParentesco(valor) {
   return "Otros:";
 }
 
-// ================= BUSCAR =================
 function getUser() {
   const doc = limpiarDoc(document.getElementById("docInput").value);
-
   if (!doc) return null;
-
   return data.find(u => limpiarDoc(u.doc) === doc);
 }
 
-// ================= INGRESO =================
 function irIngreso() {
 
   const input = document.getElementById("docInput").value.trim();
@@ -161,8 +198,7 @@ function irIngreso() {
 
   const user = getUser();
 
-  const form =
-    "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
+  const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
   if (!user) {
     window.location.href = form;
@@ -185,7 +221,6 @@ function irIngreso() {
   window.location.href = url;
 }
 
-// ================= SALIDA =================
 function irSalida() {
 
   const input = document.getElementById("docInput").value.trim();
@@ -197,8 +232,7 @@ function irSalida() {
 
   const user = getUser();
 
-  const form =
-    "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
+  const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
 
   if (!user) {
     alert("Usuario no encontrado");
@@ -221,7 +255,6 @@ function irSalida() {
   window.location.href = url;
 }
 
-// ENTER
 document.getElementById("docInput").addEventListener("keypress", function(e) {
   if (e.key === "Enter") irIngreso();
 });
