@@ -33,17 +33,11 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.1);
     }
 
-    h2 {
-      margin-bottom: 15px;
-      font-size: 20px;
-    }
-
     input {
       width: 70%;
       padding: 10px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 15px;
       margin-bottom: 15px;
     }
 
@@ -53,19 +47,12 @@
       border: none;
       border-radius: 10px;
       color: white;
-      font-size: 15px;
       margin-bottom: 10px;
       cursor: pointer;
     }
 
     .ingreso { background: #0b3d91; }
     .salida { background: #c62828; }
-
-    .footer {
-      font-size: 11px;
-      margin: 20px;
-      text-transform: uppercase;
-    }
   </style>
 </head>
 
@@ -86,60 +73,54 @@
 
 </div>
 
-<div class="footer">
-  <div><b>DEPARTAMENTO DE CONTROL INTERNO DE SEGURIDAD E INFRAESTRUCTURA</b></div>
-  <div>CORPORACION COLEGIO INTERNACIONAL ALTAMIRA</div>
-</div>
-
 <script>
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+// 🔥 URLs de hojas
+const INGRESOS_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+const SALIDAS_URL  = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=0&tqx=out:json"; // ⚠️ CAMBIA ESTE GID
 
-let data = [];
+let ingresos = [];
+let salidas = [];
 
+// ================= CARGAR DATOS =================
 async function cargarDatos() {
-  try {
-    const res = await fetch(SHEET_URL);
-    const text = await res.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
+  ingresos = await cargarHoja(INGRESOS_URL);
+  salidas  = await cargarHoja(SALIDAS_URL);
 
-    data = json.table.rows.map(r => {
-      const c = (r.c || []).map(x => x ? x.v : "");
+  console.log("Ingresos:", ingresos.length);
+  console.log("Salidas:", salidas.length);
+}
 
-      return {
-        tipo: limpiarTexto(c[1]),
-        doc: limpiarTexto(c[2]),
-        nombre: limpiarTexto(c[3]),
-        rol: limpiarTexto(c[4]),
-        entidad: limpiarTexto(c[5]),
-        placa: limpiarTexto(c[6]),
-        contacto: limpiarTexto(c[8]),
-        emergencia: limpiarTexto(c[9]),
-        destino: limpiarTexto(c[10]), // 🔥 se lee pero NO se usa
-        parentesco: normalizarParentesco(c[11])
-      };
-    });
+async function cargarHoja(url) {
+  const res = await fetch(url);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(47).slice(0, -2));
 
-    console.log("✔ Datos cargados:", data.length);
-
-  } catch (e) {
-    console.error(e);
-    alert("Error cargando base de datos");
-  }
+  return json.table.rows.map(r => {
+    const c = (r.c || []).map(x => x ? x.v : "");
+    return {
+      doc: limpiar(c[2]),
+      nombre: limpiar(c[3]),
+      tipo: limpiar(c[1]),
+      rol: limpiar(c[4]),
+      entidad: limpiar(c[5]),
+      placa: limpiar(c[6]),
+      contacto: limpiar(c[8]),
+      emergencia: limpiar(c[9]),
+      parentesco: normalizarParentesco(c[11])
+    };
+  });
 }
 
 window.onload = cargarDatos;
 
-// ================= LIMPIEZA =================
-function limpiarTexto(texto) {
-  return String(texto || "")
-    .replace(/\s+/g, " ")
-    .trim();
+// ================= UTIL =================
+function limpiar(t) {
+  return String(t || "").replace(/\s+/g, "").trim();
 }
 
-// ================= PARENTESCO =================
-function normalizarParentesco(valor) {
-  const v = limpiarTexto(valor).toLowerCase();
+function normalizarParentesco(v) {
+  v = String(v || "").toLowerCase();
 
   if (v.includes("espos")) return "Esposa/o";
   if (v.includes("hij")) return "Hija/o";
@@ -149,68 +130,42 @@ function normalizarParentesco(valor) {
   return "Otros:";
 }
 
-// ================= BUSCAR USUARIO =================
-function getUser() {
-  let doc = document.getElementById("docInput").value.trim();
+// ================= ESTADO REAL =================
+function estaDentro(doc) {
 
-  if (!doc) return null;
+  const entradas = ingresos.filter(u => u.doc === doc).length;
+  const salidasCount = salidas.filter(u => u.doc === doc).length;
 
-  doc = doc.replace(/\s+/g, "");
-
-  return data.find(u =>
-    u.doc.replace(/\s+/g, "") === doc
-  );
-}
-
-// ================= VALIDAR SI ESTA DENTRO =================
-function yaEstaDentro(doc) {
-
-  const registros = data.filter(u =>
-    u.doc.replace(/\s+/g, "") === doc.replace(/\s+/g, "")
-  );
-
-  if (registros.length === 0) return false;
-
-  return true;
+  return entradas > salidasCount;
 }
 
 // ================= INGRESO =================
 function irIngreso() {
 
-  const input = document.getElementById("docInput").value.trim();
+  const doc = limpiar(document.getElementById("docInput").value);
 
-  if (!input) {
-    alert("Debe ingresar un número de documento");
+  if (!doc) {
+    alert("Ingrese documento");
     return;
   }
 
-  if (yaEstaDentro(input)) {
-    alert("Esta persona ya se encuentra dentro. Debe registrar salida.");
+  if (estaDentro(doc)) {
+    alert("Esta persona ya está dentro. Debe salir primero.");
     return;
   }
 
-  const user = getUser();
+  const user = ingresos.find(u => u.doc === doc);
 
-  const formBase = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
-
-  if (!user) {
-    window.location.href = formBase;
-    return;
-  }
-
-  const url =
-    formBase +
-    "?usp=pp_url" +
-    "&entry.2083119061=" + encodeURIComponent(user.tipo) +
-    "&entry.311902120=" + encodeURIComponent(user.doc) +
-    "&entry.1899230705=" + encodeURIComponent(user.nombre) +
-    "&entry.477144471=" + encodeURIComponent(user.contacto) +
-    "&entry.2145689969=" + encodeURIComponent(user.rol) +
-    "&entry.1527361506=" + encodeURIComponent(user.entidad) +
-    "&entry.1268448003=" + encodeURIComponent(user.placa) +
-    "&entry.1316902717=" + encodeURIComponent(user.emergencia) +
-    "&entry.539345216=" + encodeURIComponent(user.parentesco);
-    // 🔥 SIN DESTINO
+  const url = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform?usp=pp_url"
+    + "&entry.2083119061=" + user.tipo
+    + "&entry.311902120=" + user.doc
+    + "&entry.1899230705=" + user.nombre
+    + "&entry.477144471=" + user.contacto
+    + "&entry.2145689969=" + user.rol
+    + "&entry.1527361506=" + user.entidad
+    + "&entry.1268448003=" + user.placa
+    + "&entry.1316902717=" + user.emergencia
+    + "&entry.539345216=" + user.parentesco;
 
   window.location.href = url;
 }
@@ -218,48 +173,33 @@ function irIngreso() {
 // ================= SALIDA =================
 function irSalida() {
 
-  const input = document.getElementById("docInput").value.trim();
+  const doc = limpiar(document.getElementById("docInput").value);
 
-  if (!input) {
-    alert("Debe ingresar un número de documento");
+  if (!doc) {
+    alert("Ingrese documento");
     return;
   }
 
-  if (!yaEstaDentro(input)) {
-    alert("Esta persona no tiene ingreso registrado");
+  if (!estaDentro(doc)) {
+    alert("Esta persona no está dentro.");
     return;
   }
 
-  const user = getUser();
+  const user = ingresos.find(u => u.doc === doc);
 
-  if (!user) {
-    alert("Usuario no encontrado");
-    return;
-  }
-
-  const formSalida = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
-
-  const url =
-    formSalida +
-    "?usp=pp_url" +
-    "&entry.861901166=" + encodeURIComponent(user.tipo) +
-    "&entry.1077137573=" + encodeURIComponent(user.doc) +
-    "&entry.232043619=" + encodeURIComponent(user.nombre) +
-    "&entry.666367411=" + encodeURIComponent(user.contacto) +
-    "&entry.2097525574=" + encodeURIComponent(user.rol) +
-    "&entry.2053464900=" + encodeURIComponent(user.entidad) +
-    "&entry.335364680=" + encodeURIComponent(user.placa) +
-    "&entry.1230591168=" + encodeURIComponent(user.emergencia) +
-    "&entry.620468493=" + encodeURIComponent(user.parentesco);
-    // 🔥 SIN DESTINO
+  const url = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform?usp=pp_url"
+    + "&entry.861901166=" + user.tipo
+    + "&entry.1077137573=" + user.doc
+    + "&entry.232043619=" + user.nombre
+    + "&entry.666367411=" + user.contacto
+    + "&entry.2097525574=" + user.rol
+    + "&entry.2053464900=" + user.entidad
+    + "&entry.335364680=" + user.placa
+    + "&entry.1230591168=" + user.emergencia
+    + "&entry.620468493=" + user.parentesco;
 
   window.location.href = url;
 }
-
-// ENTER = ingreso
-document.getElementById("docInput").addEventListener("keypress", function(e) {
-  if (e.key === "Enter") irIngreso();
-});
 
 </script>
 
