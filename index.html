@@ -63,53 +63,56 @@
 </div>
 
 <div class="container">
-
   <h2>Control de Acceso</h2>
-
   <input id="docInput" placeholder="Número de documento">
-
   <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
   <button class="btn salida" onclick="irSalida()">Salida</button>
-
 </div>
 
 <script>
 
-// 🔥 URLs de hojas
+// 🔥 CAMBIA SOLO ESTE GID (SALIDAS)
 const INGRESOS_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
-const SALIDAS_URL  = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=0&tqx=out:json"; // ⚠️ CAMBIA ESTE GID
+const SALIDAS_URL  = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=0&tqx=out:json"; // 👈 CAMBIAR
 
 let ingresos = [];
 let salidas = [];
 
-// ================= CARGAR DATOS =================
+// ================= CARGAR =================
 async function cargarDatos() {
   ingresos = await cargarHoja(INGRESOS_URL);
   salidas  = await cargarHoja(SALIDAS_URL);
 
-  console.log("Ingresos:", ingresos.length);
-  console.log("Salidas:", salidas.length);
+  console.log("✔ Ingresos:", ingresos.length);
+  console.log("✔ Salidas:", salidas.length);
 }
 
 async function cargarHoja(url) {
-  const res = await fetch(url);
-  const text = await res.text();
-  const json = JSON.parse(text.substring(47).slice(0, -2));
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
 
-  return json.table.rows.map(r => {
-    const c = (r.c || []).map(x => x ? x.v : "");
-    return {
-      doc: limpiar(c[2]),
-      nombre: limpiar(c[3]),
-      tipo: limpiar(c[1]),
-      rol: limpiar(c[4]),
-      entidad: limpiar(c[5]),
-      placa: limpiar(c[6]),
-      contacto: limpiar(c[8]),
-      emergencia: limpiar(c[9]),
-      parentesco: normalizarParentesco(c[11])
-    };
-  });
+    return json.table.rows.map(r => {
+      const c = (r.c || []).map(x => x ? x.v : "");
+
+      return {
+        doc: limpiar(c[2]),
+        nombre: limpiar(c[3]),
+        tipo: limpiar(c[1]),
+        rol: limpiar(c[4]),
+        entidad: limpiar(c[5]),
+        placa: limpiar(c[6]),
+        contacto: limpiar(c[8]),
+        emergencia: limpiar(c[9]),
+        parentesco: normalizarParentesco(c[11])
+      };
+    });
+
+  } catch (e) {
+    console.error("Error hoja:", e);
+    return [];
+  }
 }
 
 window.onload = cargarDatos;
@@ -130,11 +133,14 @@ function normalizarParentesco(v) {
   return "Otros:";
 }
 
-// ================= ESTADO REAL =================
+// ================= ESTADO =================
 function estaDentro(doc) {
 
   const entradas = ingresos.filter(u => u.doc === doc).length;
   const salidasCount = salidas.filter(u => u.doc === doc).length;
+
+  console.log("Entradas:", entradas);
+  console.log("Salidas:", salidasCount);
 
   return entradas > salidasCount;
 }
@@ -145,7 +151,7 @@ function irIngreso() {
   const doc = limpiar(document.getElementById("docInput").value);
 
   if (!doc) {
-    alert("Ingrese documento");
+    alert("Debe ingresar un número de documento");
     return;
   }
 
@@ -154,20 +160,22 @@ function irIngreso() {
     return;
   }
 
-  const user = ingresos.find(u => u.doc === doc);
+  const lista = ingresos.filter(u => u.doc === doc);
+  const user = lista[lista.length - 1];
 
-  const url = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform?usp=pp_url"
-    + "&entry.2083119061=" + user.tipo
-    + "&entry.311902120=" + user.doc
-    + "&entry.1899230705=" + user.nombre
-    + "&entry.477144471=" + user.contacto
-    + "&entry.2145689969=" + user.rol
-    + "&entry.1527361506=" + user.entidad
-    + "&entry.1268448003=" + user.placa
-    + "&entry.1316902717=" + user.emergencia
-    + "&entry.539345216=" + user.parentesco;
+  const form =
+    "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform?usp=pp_url" +
+    "&entry.2083119061=" + encodeURIComponent(user.tipo) +
+    "&entry.311902120=" + encodeURIComponent(user.doc) +
+    "&entry.1899230705=" + encodeURIComponent(user.nombre) +
+    "&entry.477144471=" + encodeURIComponent(user.contacto) +
+    "&entry.2145689969=" + encodeURIComponent(user.rol) +
+    "&entry.1527361506=" + encodeURIComponent(user.entidad) +
+    "&entry.1268448003=" + encodeURIComponent(user.placa) +
+    "&entry.1316902717=" + encodeURIComponent(user.emergencia) +
+    "&entry.539345216=" + encodeURIComponent(user.parentesco);
 
-  window.location.href = url;
+  window.location.href = form;
 }
 
 // ================= SALIDA =================
@@ -176,7 +184,7 @@ function irSalida() {
   const doc = limpiar(document.getElementById("docInput").value);
 
   if (!doc) {
-    alert("Ingrese documento");
+    alert("Debe ingresar un número de documento");
     return;
   }
 
@@ -185,21 +193,28 @@ function irSalida() {
     return;
   }
 
-  const user = ingresos.find(u => u.doc === doc);
+  const lista = ingresos.filter(u => u.doc === doc);
+  const user = lista[lista.length - 1];
 
-  const url = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform?usp=pp_url"
-    + "&entry.861901166=" + user.tipo
-    + "&entry.1077137573=" + user.doc
-    + "&entry.232043619=" + user.nombre
-    + "&entry.666367411=" + user.contacto
-    + "&entry.2097525574=" + user.rol
-    + "&entry.2053464900=" + user.entidad
-    + "&entry.335364680=" + user.placa
-    + "&entry.1230591168=" + user.emergencia
-    + "&entry.620468493=" + user.parentesco;
+  const form =
+    "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform?usp=pp_url" +
+    "&entry.861901166=" + encodeURIComponent(user.tipo) +
+    "&entry.1077137573=" + encodeURIComponent(user.doc) +
+    "&entry.232043619=" + encodeURIComponent(user.nombre) +
+    "&entry.666367411=" + encodeURIComponent(user.contacto) +
+    "&entry.2097525574=" + encodeURIComponent(user.rol) +
+    "&entry.2053464900=" + encodeURIComponent(user.entidad) +
+    "&entry.335364680=" + encodeURIComponent(user.placa) +
+    "&entry.1230591168=" + encodeURIComponent(user.emergencia) +
+    "&entry.620468493=" + encodeURIComponent(user.parentesco);
 
-  window.location.href = url;
+  window.location.href = form;
 }
+
+// ENTER
+document.getElementById("docInput").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") irIngreso();
+});
 
 </script>
 
