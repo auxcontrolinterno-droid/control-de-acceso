@@ -107,17 +107,17 @@ async function cargarDatos() {
       const c = (r.c || []).map(x => x ? x.v : "");
 
       return {
-  tipo: limpiarTexto(c[1]),
-  doc: limpiarTexto(c[2]),
-  nombre: limpiarTexto(c[3]),
-  rol: limpiarTexto(c[4]),
-  entidad: limpiarTexto(c[5]),
-  placa: limpiarTexto(c[6]),
-  contacto: limpiarTexto(c[8]),
-  emergencia: limpiarTexto(c[9]),
-  destino: limpiarTexto(c[10]),
-  parentesco: normalizarParentesco(c[11]) // 🔥 AQUÍ
-};
+        tipo: limpiarTexto(c[1]),
+        doc: limpiarTexto(c[2]),
+        nombre: limpiarTexto(c[3]),
+        rol: limpiarTexto(c[4]),
+        entidad: limpiarTexto(c[5]),
+        placa: limpiarTexto(c[6]),
+        contacto: limpiarTexto(c[8]),
+        emergencia: limpiarTexto(c[9]),
+        destino: limpiarTexto(c[10]), // 🔥 se lee pero NO se usa
+        parentesco: normalizarParentesco(c[11])
+      };
     });
 
     console.log("✔ Datos cargados:", data.length);
@@ -130,9 +130,14 @@ async function cargarDatos() {
 
 window.onload = cargarDatos;
 
-function limpiar(doc) {
-  return String(doc || "").replace(/\s+/g, "").trim();
+// ================= LIMPIEZA =================
+function limpiarTexto(texto) {
+  return String(texto || "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
+
+// ================= PARENTESCO =================
 function normalizarParentesco(valor) {
   const v = limpiarTexto(valor).toLowerCase();
 
@@ -144,14 +149,29 @@ function normalizarParentesco(valor) {
   return "Otros:";
 }
 
+// ================= BUSCAR USUARIO =================
 function getUser() {
   let doc = document.getElementById("docInput").value.trim();
 
   if (!doc) return null;
 
-  doc = limpiar(doc);
+  doc = doc.replace(/\s+/g, "");
 
-  return data.find(u => limpiar(u.doc) === doc);
+  return data.find(u =>
+    u.doc.replace(/\s+/g, "") === doc
+  );
+}
+
+// ================= VALIDAR SI ESTA DENTRO =================
+function yaEstaDentro(doc) {
+
+  const registros = data.filter(u =>
+    u.doc.replace(/\s+/g, "") === doc.replace(/\s+/g, "")
+  );
+
+  if (registros.length === 0) return false;
+
+  return true;
 }
 
 // ================= INGRESO =================
@@ -161,6 +181,11 @@ function irIngreso() {
 
   if (!input) {
     alert("Debe ingresar un número de documento");
+    return;
+  }
+
+  if (yaEstaDentro(input)) {
+    alert("Esta persona ya se encuentra dentro. Debe registrar salida.");
     return;
   }
 
@@ -184,7 +209,8 @@ function irIngreso() {
     "&entry.1527361506=" + encodeURIComponent(user.entidad) +
     "&entry.1268448003=" + encodeURIComponent(user.placa) +
     "&entry.1316902717=" + encodeURIComponent(user.emergencia) +
-    "&entry.539345216=" + encodeURIComponent(user.parentesco);    // ✅
+    "&entry.539345216=" + encodeURIComponent(user.parentesco);
+    // 🔥 SIN DESTINO
 
   window.location.href = url;
 }
@@ -199,10 +225,15 @@ function irSalida() {
     return;
   }
 
+  if (!yaEstaDentro(input)) {
+    alert("Esta persona no tiene ingreso registrado");
+    return;
+  }
+
   const user = getUser();
 
   if (!user) {
-    alert("Usuario no encontrado en la base de datos");
+    alert("Usuario no encontrado");
     return;
   }
 
@@ -219,8 +250,8 @@ function irSalida() {
     "&entry.2053464900=" + encodeURIComponent(user.entidad) +
     "&entry.335364680=" + encodeURIComponent(user.placa) +
     "&entry.1230591168=" + encodeURIComponent(user.emergencia) +
-    "&entry.620468493=" + encodeURIComponent(user.parentesco) + // ✅
-    "&entry.667492231=" + encodeURIComponent(user.destino);     // ✅
+    "&entry.620468493=" + encodeURIComponent(user.parentesco);
+    // 🔥 SIN DESTINO
 
   window.location.href = url;
 }
