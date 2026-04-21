@@ -1,221 +1,319 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Control de Acceso</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Control de Acceso</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body{
-font-family:'Inter',sans-serif;
-background:linear-gradient(135deg,#e9eef5,#dfe7f1);
-margin:0;
-text-align:center;
-}
+  <!-- Fuente -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-.header{
-background:white;
-padding:10px 0;
-border-bottom:2px solid #0b3d91;
-}
+  <style>
+    body{
+      font-family:'Inter',sans-serif;
+      background:linear-gradient(135deg,#e9eef5,#dfe7f1);
+      margin:0;
+      text-align:center;
+    }
 
-.header img{
-width:55%;
-max-width:200px;
-}
+    .header{
+      background:white;
+      padding:10px 0;
+      border-bottom:2px solid #0b3d91;
+      box-shadow:0 2px 6px rgba(0,0,0,.05);
+    }
 
-.container{
-background:white;
-width:90%;
-max-width:380px;
-margin:30px auto;
-padding:25px;
-border-radius:18px;
-box-shadow:0 10px 25px rgba(0,0,0,.08);
-}
+    .header img{
+      width:55%;
+      max-width:200px;
+    }
 
-h2{
-color:#0b3d91;
-font-size:24px;
-margin-bottom:10px;
-}
+    .container{
+      background:white;
+      width:90%;
+      max-width:380px;
+      margin:30px auto;
+      padding:25px;
+      border-radius:18px;
+      box-shadow:0 10px 25px rgba(0,0,0,.08);
+    }
 
-.mensaje{
-font-size:13px;
-margin-bottom:15px;
-min-height:20px;
-}
+    h2{
+      margin-bottom:10px;
+      color:#0b3d91;
+      font-weight:700;
+      font-size:24px;
+    }
 
-input,select{
-width:80%;
-padding:12px;
-border-radius:10px;
-border:1px solid #ccc;
-margin-bottom:14px;
-font-family:'Inter',sans-serif;
-}
+    .mensaje{
+      font-size:13px;
+      color:#444;
+      margin-bottom:15px;
+      min-height:20px;
+    }
 
-.btn{
-width:100%;
-padding:13px;
-border:none;
-border-radius:12px;
-color:white;
-font-size:15px;
-margin-bottom:12px;
-cursor:pointer;
-}
+    input,select{
+      width:80%;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #ccc;
+      margin-bottom:14px;
+      outline:none;
+      transition:.2s;
+      font-family:'Inter',sans-serif;
+    }
 
-.ingreso{background:#0b3d91;}
-.salida{background:#c62828;}
+    input:focus,select:focus{
+      border-color:#0b3d91;
+      box-shadow:0 0 0 2px rgba(11,61,145,.1);
+    }
 
-.footer{
-font-size:11px;
-margin-top:20px;
-line-height:1.4;
-}
-</style>
+    .btn{
+      width:100%;
+      padding:13px;
+      border:none;
+      border-radius:12px;
+      color:white;
+      font-size:15px;
+      margin-bottom:12px;
+      cursor:pointer;
+      transition:.2s;
+      font-family:'Inter',sans-serif;
+    }
+
+    .btn:hover{
+      transform:scale(1.02);
+    }
+
+    .ingreso{ background:#0b3d91; }
+    .ingreso:hover{ background:#092f6f; }
+
+    .salida{ background:#c62828; }
+    .salida:hover{ background:#a61e1e; }
+
+    .footer{
+      font-size:11px;
+      margin-top:20px;
+      line-height:1.4;
+    }
+
+    .footer .departamento{
+      color:#0b3d91;
+      font-weight:700;
+    }
+
+    .footer .corporacion{
+      color:#000;
+      font-weight:700;
+    }
+  </style>
 </head>
 
 <body>
 
 <div class="header">
-<img src="https://i.imgur.com/OB279U8.jpeg">
+  <img src="https://i.imgur.com/OB279U8.jpeg">
 </div>
 
 <div class="container">
 
-<h2>Control de Acceso</h2>
+  <h2>Control de Acceso</h2>
 
-<div class="mensaje" id="mensaje"></div>
+  <div class="mensaje" id="mensaje"></div>
 
-<input id="docInput" placeholder="Número de documento">
+  <input id="docInput" placeholder="Número de documento">
 
-<select id="rolSelect">
-<option value="">Defina su rol</option>
-<option value="VISITANTE">VISITANTE</option>
-<option value="CONTRATISTA">CONTRATISTA</option>
-</select>
+  <select id="rolSelect">
+    <option value="">Defina su rol</option>
+    <option value="Visitante">Visitante</option>
+    <option value="Contratista">Contratista</option>
+  </select>
 
-<button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
-<button class="btn salida" onclick="irSalida()">Salida</button>
+  <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
+  <button class="btn salida" onclick="irSalida()">Salida</button>
 
-<div class="footer">
-DEPARTAMENTO DE CONTROL INTERNO DE SEGURIDAD E INFRAESTRUCTURA<br>
-CORPORACION COLEGIO INTERNACIONAL ALTAMIRA
-</div>
+  <div class="footer">
+    <div class="departamento">
+      DEPARTAMENTO DE CONTROL INTERNO DE SEGURIDAD E INFRAESTRUCTURA
+    </div>
+    <div class="corporacion">
+      CORPORACION COLEGIO INTERNACIONAL ALTAMIRA
+    </div>
+  </div>
 
 </div>
 
 <script>
 
-const SHEET_URL="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
-let data=[];
+let data = [];
 
-async function cargarDatos(){
-const res=await fetch(SHEET_URL);
-const text=await res.text();
-const json=JSON.parse(text.substring(47).slice(0,-2));
+/* ================= CARGAR BASE ================= */
+async function cargarDatos() {
+  try {
+    const res = await fetch(SHEET_URL);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0,-2));
 
-data=json.table.rows.map(r=>{
-const c=(r.c||[]).map(x=>x?x.v:"");
+    data = json.table.rows.map(r => {
+      const c = (r.c || []).map(x => x ? x.v : "");
 
-return{
-tipo:c[1]||"",
-doc:c[2]||"",
-nombre:c[3]||"",
-rol:c[4]||"",
-entidad:c[5]||"",
-placa:c[6]||"",
-contacto:c[8]||"",
-emergencia:c[9]||"",
-parentesco:c[11]||""
-};
-});
+      return {
+        tipo: limpiarTexto(c[1]),
+        doc: limpiarTexto(c[2]),
+        nombre: limpiarTexto(c[3]),
+        rol: limpiarTexto(c[4]),
+        entidad: limpiarTexto(c[5]),
+        placa: limpiarTexto(c[6]),
+        contacto: limpiarTexto(c[8]),
+        emergencia: limpiarTexto(c[9]),
+        parentesco: normalizarParentesco(c[11])
+      };
+    });
+
+  } catch(e) {
+    alert("Error cargando base de datos");
+  }
 }
 
-window.onload=cargarDatos;
+window.onload = cargarDatos;
 
-function limpiar(v){
-return String(v||"").trim();
+/* ================= UTILIDADES ================= */
+function limpiarTexto(texto){
+  return String(texto || "").replace(/\s+/g," ").trim();
+}
+
+function limpiarDoc(doc){
+  return String(doc || "").replace(/\s+/g,"").trim();
+}
+
+function normalizarParentesco(valor){
+  const v = limpiarTexto(valor).toLowerCase();
+
+  if(v.includes("espos")) return "Esposa/o";
+  if(v.includes("hij")) return "Hija/o";
+  if(v.includes("herman")) return "Hermana/o";
+  if(v.includes("amig")) return "Amiga/o";
+
+  return "Otros:";
 }
 
 function getUser(){
-const doc=limpiar(document.getElementById("docInput").value);
-return data.find(x=>limpiar(x.doc)==doc);
+  const doc = limpiarDoc(document.getElementById("docInput").value);
+  if(!doc) return null;
+
+  return data.find(u => limpiarDoc(u.doc) === doc);
 }
 
-document.getElementById("docInput").addEventListener("input",function(){
+/* ================= MENSAJE ================= */
+document.getElementById("docInput").addEventListener("input", function(){
 
-const user=getUser();
-const m=document.getElementById("mensaje");
+  const user = getUser();
+  const mensaje = document.getElementById("mensaje");
 
-if(!this.value){
-m.innerText="";
-return;
-}
+  if(!this.value){
+    mensaje.innerText = "";
+    return;
+  }
 
-if(user){
-m.innerText="Bienvenido nuevamente, "+user.nombre.split(" ")[0]+" 👋";
-}else{
-m.innerText="Bienvenido a nuestras instalaciones 😊";
-}
+  if(user){
+    const nombre = user.nombre.split(" ")[0];
+    mensaje.innerText = "Bienvenido nuevamente, " + nombre + " 👋";
+  }else{
+    mensaje.innerText = "Bienvenido a nuestras instalaciones 😊";
+  }
 
 });
 
+/* ================= INGRESO ================= */
 function irIngreso(){
 
-const doc=document.getElementById("docInput").value.trim();
-const rol=document.getElementById("rolSelect").value;
+  const input = document.getElementById("docInput").value.trim();
+  const rol = document.getElementById("rolSelect").value;
 
-if(!doc){
-alert("Ingrese documento");
-return;
+  if(!input){
+    alert("Debe ingresar un número de documento");
+    return;
+  }
+
+  if(!rol){
+    alert("Seleccione un rol");
+    return;
+  }
+
+  const user = getUser();
+
+  const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
+
+  /* SI NO EXISTE EN BASE */
+  if(!user){
+
+    const url =
+      form +
+      "?usp=pp_url" +
+      "&entry.311902120=" + encodeURIComponent(input) +
+      "&entry.1086354848=" + encodeURIComponent(rol);
+
+    window.location.href = url;
+    return;
+  }
+
+  /* SI YA EXISTE */
+  const url =
+    form +
+    "?usp=pp_url" +
+    "&entry.1086354848=" + encodeURIComponent(rol) +
+    "&entry.1899230705=" + encodeURIComponent(user.nombre) +
+    "&entry.2083119061=" + encodeURIComponent(user.tipo) +
+    "&entry.311902120=" + encodeURIComponent(user.doc) +
+    "&entry.477144471=" + encodeURIComponent(user.contacto) +
+    "&entry.1527361506=" + encodeURIComponent(user.entidad) +
+    "&entry.1268448003=" + encodeURIComponent(user.placa) +
+    "&entry.1316902717=" + encodeURIComponent(user.emergencia) +
+    "&entry.539345216=" + encodeURIComponent(user.parentesco) +
+    "&entry.1651701540=" + encodeURIComponent(user.rol);
+
+  window.location.href = url;
 }
 
-if(!rol){
-alert("Seleccione rol");
-return;
-}
-
-const user=getUser();
-
-const form="https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
-
-if(!user){
-
-window.location.href=
-form+
-"?usp=pp_url"+
-"&entry.1086354848="+encodeURIComponent(rol);
-
-return;
-}
-
-const url=
-form+
-"?usp=pp_url"+
-"&entry.1086354848="+encodeURIComponent(rol)+
-"&entry.1899230705="+encodeURIComponent(user.nombre)+
-"&entry.2083119061="+encodeURIComponent(user.tipo)+
-"&entry.311902120="+encodeURIComponent(user.doc)+
-"&entry.477144471="+encodeURIComponent(user.contacto)+
-"&entry.1527361506="+encodeURIComponent(user.entidad)+
-"&entry.1268448003="+encodeURIComponent(user.placa)+
-"&entry.1316902717="+encodeURIComponent(user.emergencia)+
-"&entry.539345216="+encodeURIComponent(user.parentesco)+
-"&entry.1651701540="+encodeURIComponent(user.rol);
-
-window.location.href=url;
-}
-
+/* ================= SALIDA ================= */
 function irSalida(){
-alert("Salida sigue igual.");
+
+  const input = document.getElementById("docInput").value.trim();
+
+  if(!input){
+    alert("Debe ingresar un número de documento");
+    return;
+  }
+
+  const user = getUser();
+
+  if(!user){
+    alert("Usuario no encontrado");
+    return;
+  }
+
+  const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
+
+  const url =
+    form +
+    "?usp=pp_url" +
+    "&entry.861901166=" + encodeURIComponent(user.tipo) +
+    "&entry.1077137573=" + encodeURIComponent(user.doc) +
+    "&entry.232043619=" + encodeURIComponent(user.nombre) +
+    "&entry.666367411=" + encodeURIComponent(user.contacto) +
+    "&entry.2097525574=" + encodeURIComponent(user.rol) +
+    "&entry.2053464900=" + encodeURIComponent(user.entidad) +
+    "&entry.335364680=" + encodeURIComponent(user.placa) +
+    "&entry.1230591168=" + encodeURIComponent(user.emergencia) +
+    "&entry.620468493=" + encodeURIComponent(user.parentesco);
+
+  window.location.href = url;
 }
 
-document.getElementById("docInput").addEventListener("keypress",function(e){
-if(e.key==="Enter") irIngreso();
+/* ================= ENTER ================= */
+document.getElementById("docInput").addEventListener("keypress", function(e){
+  if(e.key === "Enter") irIngreso();
 });
 
 </script>
