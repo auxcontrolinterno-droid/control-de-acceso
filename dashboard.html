@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard Seguridad Altamira</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(135deg,#eef2f7,#dde6f1);
+}
+
+.header{
+  background:#fff;
+  text-align:center;
+  padding:18px;
+  border-bottom:3px solid #0b3d91;
+}
+
+.header img{
+  width:180px;
+}
+
+.header h1{
+  color:#0b3d91;
+  margin-top:10px;
+}
+
+.wrap{
+  width:95%;
+  max-width:1300px;
+  margin:auto;
+  padding:25px 0;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:15px;
+  margin-bottom:25px;
+}
+
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.card small{
+  color:#666;
+  display:block;
+  margin-bottom:8px;
+}
+
+.card h2{
+  font-size:34px;
+  color:#0b3d91;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1.3fr .7fr;
+  gap:18px;
+}
+
+.panel{
+  background:#fff;
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.panel h3{
+  color:#0b3d91;
+  margin-bottom:15px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th{
+  background:#0b3d91;
+  color:white;
+  padding:12px;
+  font-size:13px;
+  text-align:left;
+}
+
+td{
+  padding:11px;
+  border-bottom:1px solid #eee;
+  font-size:14px;
+}
+
+.badge-in{
+  background:#dcfce7;
+  color:#15803d;
+  padding:5px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.badge-out{
+  background:#fee2e2;
+  color:#b91c1c;
+  padding:5px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.lista{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.item{
+  background:#f8fafc;
+  padding:14px;
+  border-radius:14px;
+  font-size:14px;
+}
+
+.footer{
+  text-align:center;
+  margin-top:20px;
+  color:#666;
+  font-size:12px;
+}
+
+@media(max-width:900px){
+.grid{
+grid-template-columns:1fr;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<img src="https://i.imgur.com/OB279U8.jpeg">
+<h1>Dashboard de Seguridad</h1>
+</div>
+
+<div class="wrap">
+
+<div class="cards">
+
+<div class="card">
+<small>Ingresos Hoy</small>
+<h2 id="ingresos">0</h2>
+</div>
+
+<div class="card">
+<small>Salidas Contratistas</small>
+<h2 id="salidas">0</h2>
+</div>
+
+<div class="card">
+<small>Contratistas Dentro</small>
+<h2 id="dentro">0</h2>
+</div>
+
+<div class="card">
+<small>Hora</small>
+<h2 id="hora" style="font-size:24px;">--:--</h2>
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="panel">
+<h3>Últimos Movimientos</h3>
+
+<table>
+<thead>
+<tr>
+<th>Hora</th>
+<th>Nombre</th>
+<th>Rol</th>
+<th>Movimiento</th>
+</tr>
+</thead>
+
+<tbody id="tabla"></tbody>
+</table>
+
+</div>
+
+<div class="panel">
+<h3>Contratistas Dentro</h3>
+<div class="lista" id="listaDentro"></div>
+</div>
+
+</div>
+
+<div class="footer">
+Actualización automática cada 15 segundos
+</div>
+
+</div>
+
+<script>
+
+/* ==========================
+PEGA TUS LINKS AQUÍ
+========================== */
+
+const URL_INGRESOS = "PEGAR_LINK_INGRESOS";
+const URL_SALIDAS  = "PEGAR_LINK_SALIDAS";
+
+/* ========================== */
+
+async function leerSheet(url){
+
+ const res = await fetch(url);
+ const txt = await res.text();
+ const json = JSON.parse(txt.substring(47).slice(0,-2));
+
+ return json.table.rows.map(r =>
+   (r.c || []).map(x => x ? x.v : "")
+ );
+}
+
+async function cargar(){
+
+ try{
+
+   const ingresos = await leerSheet(URL_INGRESOS);
+   const salidas  = await leerSheet(URL_SALIDAS);
+
+   let ingresosHoy = ingresos.length;
+   let salidasHoy = salidas.length;
+
+   document.getElementById("ingresos").innerText = ingresosHoy;
+   document.getElementById("salidas").innerText = salidasHoy;
+
+   pintarTabla(ingresos,salidas);
+   contratistasDentro(ingresos,salidas);
+   reloj();
+
+ }catch(e){
+   console.log(e);
+ }
+
+}
+
+function pintarTabla(ingresos,salidas){
+
+ let movimientos = [];
+
+ ingresos.slice(-8).forEach(f=>{
+
+   movimientos.push({
+     hora:f[0] || "--",
+     nombre:f[2] || "Sin nombre",
+     rol:f[1] || "-",
+     tipo:"Ingreso"
+   });
+
+ });
+
+ salidas.slice(-5).forEach(f=>{
+
+   movimientos.push({
+     hora:f[0] || "--",
+     nombre:f[2] || "Sin nombre",
+     rol:"CONTRATISTA",
+     tipo:"Salida"
+   });
+
+ });
+
+ movimientos.reverse();
+
+ let html = "";
+
+ movimientos.forEach(m=>{
+
+   html += `
+   <tr>
+     <td>${m.hora}</td>
+     <td>${m.nombre}</td>
+     <td>${m.rol}</td>
+     <td>${
+       m.tipo=="Ingreso"
+       ? '<span class="badge-in">Ingreso</span>'
+       : '<span class="badge-out">Salida</span>'
+     }</td>
+   </tr>
+   `;
+
+ });
+
+ document.getElementById("tabla").innerHTML = html;
+
+}
+
+function contratistasDentro(ingresos,salidas){
+
+ let docsSalida = salidas.map(x => String(x[1]).trim());
+
+ let activos = [];
+
+ ingresos.forEach(f=>{
+
+   const rol = String(f[1]).toUpperCase();
+   const doc = String(f[3]).trim();
+
+   if(rol=="CONTRATISTA"){
+
+     if(!docsSalida.includes(doc)){
+       activos.push({
+         nombre:f[2],
+         empresa:f[5] || "-"
+       });
+     }
+
+   }
+
+ });
+
+ document.getElementById("dentro").innerText = activos.length;
+
+ let html = "";
+
+ activos.forEach(x=>{
+
+   html += `
+   <div class="item">
+   <strong>${x.nombre}</strong><br>
+   ${x.empresa}
+   </div>
+   `;
+
+ });
+
+ document.getElementById("listaDentro").innerHTML =
+ html || "<div class='item'>Sin contratistas activos</div>";
+
+}
+
+function reloj(){
+
+ const ahora = new Date();
+
+ document.getElementById("hora").innerText =
+ ahora.toLocaleTimeString([],{
+   hour:'2-digit',
+   minute:'2-digit'
+ });
+
+}
+
+cargar();
+setInterval(cargar,15000);
+
+</script>
+
+</body>
+</html>
