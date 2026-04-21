@@ -39,8 +39,8 @@
     h2{
       margin-bottom:10px;
       color:#0b3d91;
-      font-weight:700;
       font-size:24px;
+      font-weight:700;
     }
 
     .mensaje{
@@ -57,13 +57,7 @@
       border:1px solid #ccc;
       margin-bottom:14px;
       outline:none;
-      transition:.2s;
       font-family:'Inter',sans-serif;
-    }
-
-    input:focus,select:focus{
-      border-color:#0b3d91;
-      box-shadow:0 0 0 2px rgba(11,61,145,.1);
     }
 
     .btn{
@@ -75,19 +69,15 @@
       font-size:15px;
       margin-bottom:12px;
       cursor:pointer;
-      transition:.2s;
       font-family:'Inter',sans-serif;
     }
 
-    .btn:hover{
-      transform:scale(1.02);
-    }
-
     .ingreso{ background:#0b3d91; }
-    .ingreso:hover{ background:#092f6f; }
-
     .salida{ background:#c62828; }
-    .salida:hover{ background:#a61e1e; }
+
+    .hidden{
+      display:none;
+    }
 
     .footer{
       font-size:11px;
@@ -119,16 +109,26 @@
 
   <div class="mensaje" id="mensaje"></div>
 
-  <input id="docInput" placeholder="Número de documento">
-
-  <select id="rolSelect">
+  <!-- PRIMERO ROL -->
+  <select id="rolSelect" onchange="cambiarVista()">
     <option value="">Defina su rol</option>
     <option value="VISITANTE">Visitante</option>
     <option value="CONTRATISTA">Contratista</option>
   </select>
 
-  <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
-  <button class="btn salida" onclick="irSalida()">Salida</button>
+  <!-- LUEGO CEDULA -->
+  <div id="zonaCedula" class="hidden">
+    <input id="docInput" placeholder="Número de documento">
+  </div>
+
+  <!-- BOTONES -->
+  <div id="zonaIngreso" class="hidden">
+    <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
+  </div>
+
+  <div id="zonaSalida" class="hidden">
+    <button class="btn salida" onclick="irSalida()">Salida</button>
+  </div>
 
   <div class="footer">
     <div class="departamento">
@@ -147,96 +147,92 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7
 
 let data = [];
 
-/* ================= CARGAR BASE ================= */
-async function cargarDatos() {
-  try {
+async function cargarDatos(){
+  try{
     const res = await fetch(SHEET_URL);
     const text = await res.text();
     const json = JSON.parse(text.substring(47).slice(0,-2));
 
-    data = json.table.rows.map(r => {
+    data = json.table.rows.map(r=>{
       const c = (r.c || []).map(x => x ? x.v : "");
 
-      return {
-        tipo: limpiarTexto(c[1]),
-        doc: limpiarTexto(c[2]),
-        nombre: limpiarTexto(c[3]),
-        rol: limpiarTexto(c[4]),
-        entidad: limpiarTexto(c[5]),
-        placa: limpiarTexto(c[6]),
-        contacto: limpiarTexto(c[8]),
-        emergencia: limpiarTexto(c[9]),
-        parentesco: normalizarParentesco(c[11])
+      return{
+        tipo:c[1] || "",
+        doc:c[2] || "",
+        nombre:c[3] || "",
+        rol:c[4] || "",
+        entidad:c[5] || "",
+        placa:c[6] || "",
+        contacto:c[8] || "",
+        emergencia:c[9] || "",
+        parentesco:c[11] || ""
       };
     });
 
-  } catch(e) {
-    alert("Error cargando base de datos");
+  }catch(e){
+    alert("Error cargando base");
   }
 }
 
 window.onload = cargarDatos;
 
-/* ================= UTILIDADES ================= */
-function limpiarTexto(texto){
-  return String(texto || "").replace(/\s+/g," ").trim();
+/* CAMBIAR VISTA SEGUN ROL */
+function cambiarVista(){
+
+  const rol = document.getElementById("rolSelect").value;
+
+  document.getElementById("zonaCedula").classList.remove("hidden");
+  document.getElementById("zonaIngreso").classList.remove("hidden");
+
+  if(rol === "CONTRATISTA"){
+    document.getElementById("zonaSalida").classList.remove("hidden");
+  }else{
+    document.getElementById("zonaSalida").classList.add("hidden");
+  }
 }
 
-function limpiarDoc(doc){
-  return String(doc || "").replace(/\s+/g,"").trim();
-}
-
-function normalizarParentesco(valor){
-  const v = limpiarTexto(valor).toLowerCase();
-
-  if(v.includes("espos")) return "Esposa/o";
-  if(v.includes("hij")) return "Hija/o";
-  if(v.includes("herman")) return "Hermana/o";
-  if(v.includes("amig")) return "Amiga/o";
-
-  return "Otros:";
-}
-
+/* BUSCAR USUARIO */
 function getUser(){
-  const doc = limpiarDoc(document.getElementById("docInput").value);
+  const doc = document.getElementById("docInput").value.trim();
   if(!doc) return null;
 
-  return data.find(u => limpiarDoc(u.doc) === doc);
+  return data.find(u => String(u.doc).trim() === doc);
 }
 
-/* ================= MENSAJE ================= */
-document.getElementById("docInput").addEventListener("input", function(){
+/* MENSAJE */
+document.addEventListener("input", function(e){
+
+  if(e.target.id !== "docInput") return;
 
   const user = getUser();
   const mensaje = document.getElementById("mensaje");
 
-  if(!this.value){
+  if(!e.target.value){
     mensaje.innerText = "";
     return;
   }
 
   if(user){
-    const nombre = user.nombre.split(" ")[0];
-    mensaje.innerText = "Bienvenido nuevamente, " + nombre + " 👋";
+    mensaje.innerText = "Bienvenido nuevamente, " + user.nombre.split(" ")[0] + " 👋";
   }else{
     mensaje.innerText = "Bienvenido a nuestras instalaciones 😊";
   }
 
 });
 
-/* ================= INGRESO ================= */
+/* INGRESO */
 function irIngreso(){
 
-  const input = document.getElementById("docInput").value.trim();
+  const doc = document.getElementById("docInput").value.trim();
   const rol = document.getElementById("rolSelect").value;
 
-  if(!input){
-    alert("Debe ingresar un número de documento");
+  if(!doc){
+    alert("Ingrese documento");
     return;
   }
 
   if(!rol){
-    alert("Seleccione un rol");
+    alert("Seleccione rol");
     return;
   }
 
@@ -244,20 +240,18 @@ function irIngreso(){
 
   const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
-  /* USUARIO NUEVO */
   if(!user){
 
     const url =
       form +
       "?usp=pp_url" +
       "&entry.1086354848=" + encodeURIComponent(rol) +
-      "&entry.311902120=" + encodeURIComponent(input);
+      "&entry.311902120=" + encodeURIComponent(doc);
 
     window.location.href = url;
     return;
   }
 
-  /* USUARIO EXISTENTE */
   const url =
     form +
     "?usp=pp_url" +
@@ -275,13 +269,13 @@ function irIngreso(){
   window.location.href = url;
 }
 
-/* ================= SALIDA ================= */
+/* SALIDA */
 function irSalida(){
 
-  const input = document.getElementById("docInput").value.trim();
+  const doc = document.getElementById("docInput").value.trim();
 
-  if(!input){
-    alert("Debe ingresar un número de documento");
+  if(!doc){
+    alert("Ingrese documento");
     return;
   }
 
@@ -309,11 +303,6 @@ function irSalida(){
 
   window.location.href = url;
 }
-
-/* ================= ENTER ================= */
-document.getElementById("docInput").addEventListener("keypress", function(e){
-  if(e.key === "Enter") irIngreso();
-});
 
 </script>
 
