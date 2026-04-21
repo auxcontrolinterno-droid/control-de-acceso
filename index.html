@@ -4,7 +4,6 @@
   <title>Control de Acceso</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Fuente -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -124,8 +123,8 @@
 
   <select id="rolSelect">
     <option value="">Defina su rol</option>
-    <option value="Visitante">Visitante</option>
-    <option value="Contratista">Contratista</option>
+    <option value="VISITANTE">Visitante</option>
+    <option value="CONTRATISTA">Contratista</option>
   </select>
 
   <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
@@ -245,20 +244,20 @@ function irIngreso(){
 
   const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
-  /* SI NO EXISTE EN BASE */
+  /* USUARIO NUEVO */
   if(!user){
 
     const url =
       form +
       "?usp=pp_url" +
-      "&entry.311902120=" + encodeURIComponent(input) +
-      "&entry.1086354848=" + encodeURIComponent(rol);
+      "&entry.1086354848=" + encodeURIComponent(rol) +
+      "&entry.311902120=" + encodeURIComponent(input);
 
     window.location.href = url;
     return;
   }
 
-  /* SI YA EXISTE */
+  /* USUARIO EXISTENTE */
   const url =
     form +
     "?usp=pp_url" +
