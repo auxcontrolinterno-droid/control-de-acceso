@@ -168,15 +168,15 @@ async function cargarDatos() {
       const c = (r.c || []).map(x => x ? x.v : "");
 
       return {
-        tipo: limpiarTexto(c[1]),
-        doc: limpiarTexto(c[2]),
-        nombre: limpiarTexto(c[3]),
-        rol: limpiarTexto(c[4]),
-        entidad: limpiarTexto(c[5]),
-        placa: limpiarTexto(c[6]),
-        contacto: limpiarTexto(c[8]),
-        emergencia: limpiarTexto(c[9]),
-        parentesco: normalizarParentesco(c[11])
+        Nombre completo      = entry.1899230705
+Tipo documento       = entry.2083119061
+Número documento     = entry.311902120
+Celular              = entry.477144471
+Entidad / Empresa    = entry.1527361506
+Placa                = entry.1268448003
+Emergencia           = entry.1316902717
+Parentesco           = entry.539345216
+Destino / Área       = entry.1651701540
       };
     });
 
