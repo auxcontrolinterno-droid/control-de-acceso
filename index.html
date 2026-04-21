@@ -38,11 +38,11 @@
     }
 
     h2 {
-  margin-bottom: 10px;
-  color: #0b3d91;
-  font-weight: 700;
-  font-size: 24px; /* 🔥 AUMENTA EL TAMAÑO */
-}
+      margin-bottom: 10px;
+      color: #0b3d91;
+      font-weight: 700;
+      font-size: 24px;
+    }
 
     .mensaje {
       font-size: 13px;
@@ -51,17 +51,18 @@
       min-height: 20px;
     }
 
-    input {
+    input, select {
       width: 80%;
       padding: 12px;
       border-radius: 10px;
       border: 1px solid #ccc;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
       outline: none;
       transition: 0.2s;
+      font-family: 'Inter', sans-serif;
     }
 
-    input:focus {
+    input:focus, select:focus {
       border-color: #0b3d91;
       box-shadow: 0 0 0 2px rgba(11,61,145,0.1);
     }
@@ -130,8 +131,15 @@
 
   <input id="docInput" placeholder="Número de documento">
 
-  <button class="btn ingreso" onclick="irIngreso()"> Ingreso</button>
-  <button class="btn salida" onclick="irSalida()"> Salida</button>
+  <!-- VERSION PRO -->
+  <select id="rolManual">
+    <option value="">Defina su rol</option>
+    <option value="Visitante">Visitante</option>
+    <option value="Contratista">Contratista</option>
+  </select>
+
+  <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
+  <button class="btn salida" onclick="irSalida()">Salida</button>
 
   <div class="footer">
     <div class="departamento">
@@ -204,7 +212,7 @@ function getUser() {
   return data.find(u => limpiarDoc(u.doc) === doc);
 }
 
-// 🔥 MENSAJE DINÁMICO
+/* MENSAJE */
 document.getElementById("docInput").addEventListener("input", function() {
 
   const user = getUser();
@@ -219,17 +227,23 @@ document.getElementById("docInput").addEventListener("input", function() {
     const nombre = user.nombre.split(" ")[0];
     mensaje.innerText = "Bienvenido nuevamente, " + nombre + " 👋";
   } else {
-    mensaje.innerText = "Bienvenido a nuestras instalaciones, por favor registre sus datos 😊";
+    mensaje.innerText = "Bienvenido a nuestras instalaciones 😊";
   }
 });
 
-// ================= INGRESO =================
+/* INGRESO */
 function irIngreso() {
 
   const input = document.getElementById("docInput").value.trim();
+  const rolManual = document.getElementById("rolManual").value;
 
   if (!input) {
-    alert("Debe ingresar un número de documento");
+    alert("Debe ingresar documento");
+    return;
+  }
+
+  if (!rolManual) {
+    alert("Seleccione un rol");
     return;
   }
 
@@ -237,45 +251,53 @@ function irIngreso() {
 
   const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
+  /* SI NO EXISTE */
   if (!user) {
-    window.location.href = form;
+
+    const url =
+      form +
+      "?usp=pp_url" +
+      "&entry.2145689969=" + encodeURIComponent(rolManual);
+
+    window.location.href = url;
     return;
   }
 
+  /* AUTORELLENO */
   const url =
     form +
     "?usp=pp_url" +
-    "&entry.2083119061=" + encodeURIComponent(user.tipo) +
-    "&entry.311902120=" + encodeURIComponent(user.doc) +
-    "&entry.1899230705=" + encodeURIComponent(user.nombre) +
-    "&entry.477144471=" + encodeURIComponent(user.contacto) +
-    "&entry.2145689969=" + encodeURIComponent(user.rol) +
-    "&entry.1527361506=" + encodeURIComponent(user.entidad) +
-    "&entry.1268448003=" + encodeURIComponent(user.placa) +
-    "&entry.1316902717=" + encodeURIComponent(user.emergencia) +
-    "&entry.539345216=" + encodeURIComponent(user.parentesco);
+    "&entry.2145689969=" + encodeURIComponent(rolManual) +
+    "&entry.1467518674=" + encodeURIComponent(user.nombre) +
+    "&entry.759778662=" + encodeURIComponent(user.tipo) +
+    "&entry.1067239809=" + encodeURIComponent(user.doc) +
+    "&entry.260712750=" + encodeURIComponent(user.contacto) +
+    "&entry.1453302831=" + encodeURIComponent(user.entidad) +
+    "&entry.1270164542=" + encodeURIComponent(user.placa) +
+    "&entry.921499438=" + encodeURIComponent(user.emergencia) +
+    "&entry.305397915=" + encodeURIComponent(user.parentesco);
 
   window.location.href = url;
 }
 
-// ================= SALIDA =================
+/* SALIDA */
 function irSalida() {
 
   const input = document.getElementById("docInput").value.trim();
 
   if (!input) {
-    alert("Debe ingresar un número de documento");
+    alert("Debe ingresar documento");
     return;
   }
 
   const user = getUser();
 
-  const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
-
   if (!user) {
     alert("Usuario no encontrado");
     return;
   }
+
+  const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
 
   const url =
     form +
@@ -285,15 +307,12 @@ function irSalida() {
     "&entry.232043619=" + encodeURIComponent(user.nombre) +
     "&entry.666367411=" + encodeURIComponent(user.contacto) +
     "&entry.2097525574=" + encodeURIComponent(user.rol) +
-    "&entry.2053464900=" + encodeURIComponent(user.entidad) +
-    "&entry.335364680=" + encodeURIComponent(user.placa) +
-    "&entry.1230591168=" + encodeURIComponent(user.emergencia) +
-    "&entry.620468493=" + encodeURIComponent(user.parentesco);
+    "&entry.2053464900=" + encodeURIComponent(user.entidad);
 
   window.location.href = url;
 }
 
-// ENTER
+/* ENTER */
 document.getElementById("docInput").addEventListener("keypress", function(e) {
   if (e.key === "Enter") irIngreso();
 });
