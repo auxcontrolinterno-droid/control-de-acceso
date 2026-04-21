@@ -8,11 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+*{margin:0;padding:0;box-sizing:border-box;}
 
 body{
 font-family:'Inter',sans-serif;
@@ -25,13 +21,9 @@ background:#fff;
 padding:18px;
 text-align:center;
 border-bottom:3px solid #0b3d91;
-box-shadow:0 3px 10px rgba(0,0,0,.05);
 }
 
-.header img{
-width:180px;
-max-width:80%;
-}
+.header img{width:180px;max-width:80%;}
 
 .header h1{
 margin-top:10px;
@@ -57,14 +49,14 @@ margin-bottom:25px;
 background:#fff;
 padding:20px;
 border-radius:18px;
-box-shadow:0 12px 25px rgba(0,0,0,.08);
+box-shadow:0 10px 25px rgba(0,0,0,.08);
 }
 
 .card small{
 display:block;
-font-size:13px;
 color:#666;
 margin-bottom:8px;
+font-size:13px;
 }
 
 .card h2{
@@ -82,7 +74,7 @@ gap:18px;
 background:#fff;
 padding:20px;
 border-radius:18px;
-box-shadow:0 12px 25px rgba(0,0,0,.08);
+box-shadow:0 10px 25px rgba(0,0,0,.08);
 }
 
 .panel h3{
@@ -97,7 +89,7 @@ border-collapse:collapse;
 
 th{
 background:#0b3d91;
-color:white;
+color:#fff;
 padding:12px;
 font-size:13px;
 text-align:left;
@@ -142,15 +134,13 @@ font-size:14px;
 
 .footer{
 text-align:center;
-margin-top:22px;
+margin-top:20px;
 font-size:12px;
 color:#666;
 }
 
 @media(max-width:900px){
-.grid{
-grid-template-columns:1fr;
-}
+.grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -172,7 +162,7 @@ grid-template-columns:1fr;
 </div>
 
 <div class="card">
-<small>Salidas Contratistas</small>
+<small>Salidas Hoy</small>
 <h2 id="salidas">0</h2>
 </div>
 
@@ -191,7 +181,7 @@ grid-template-columns:1fr;
 <div class="grid">
 
 <div class="panel">
-<h3>Últimos Movimientos</h3>
+<h3>Últimos Movimientos de Hoy</h3>
 
 <table>
 <thead>
@@ -202,7 +192,6 @@ grid-template-columns:1fr;
 <th>Movimiento</th>
 </tr>
 </thead>
-
 <tbody id="tabla"></tbody>
 </table>
 </div>
@@ -221,8 +210,6 @@ Actualización automática cada 15 segundos
 </div>
 
 <script>
-
-/* LINKS REALES */
 
 const URL_INGRESOS =
 "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
@@ -243,22 +230,77 @@ return json.table.rows.map(r =>
 
 }
 
+/* CONVERTIR FECHA GOOGLE */
+function convertirFecha(valor){
+
+if(!valor) return null;
+
+if(typeof valor === "string" && valor.includes("Date(")){
+
+const nums = valor.match(/\d+/g).map(Number);
+
+return new Date(
+nums[0],
+nums[1],
+nums[2],
+nums[3] || 0,
+nums[4] || 0,
+nums[5] || 0
+);
+
+}
+
+return new Date(valor);
+
+}
+
+/* SOLO FILA DE HOY */
+function esHoy(valor){
+
+const fecha = convertirFecha(valor);
+if(!fecha) return false;
+
+const hoy = new Date();
+
+return fecha.getDate() === hoy.getDate() &&
+       fecha.getMonth() === hoy.getMonth() &&
+       fecha.getFullYear() === hoy.getFullYear();
+
+}
+
+/* HORA LIMPIA */
+function horaBonita(valor){
+
+const fecha = convertirFecha(valor);
+if(!fecha) return "--";
+
+return fecha.toLocaleTimeString([],{
+hour:'2-digit',
+minute:'2-digit'
+});
+
+}
+
 async function cargarDashboard(){
 
 try{
 
-const ingresos = await leerSheet(URL_INGRESOS);
-const salidas  = await leerSheet(URL_SALIDAS);
+let ingresos = await leerSheet(URL_INGRESOS);
+let salidas  = await leerSheet(URL_SALIDAS);
+
+/* SOLO HOY */
+ingresos = ingresos.filter(f => esHoy(f[0]));
+salidas  = salidas.filter(f => esHoy(f[0]));
 
 document.getElementById("ingresos").innerText = ingresos.length;
-document.getElementById("salidas").innerText  = salidas.length;
+document.getElementById("salidas").innerText = salidas.length;
 
 ultimosMovimientos(ingresos,salidas);
 contratistasDentro(ingresos,salidas);
 reloj();
 
 }catch(e){
-console.log("Error:",e);
+console.log(e);
 }
 
 }
@@ -267,31 +309,33 @@ function ultimosMovimientos(ingresos,salidas){
 
 let movimientos = [];
 
-/* INGRESOS */
-ingresos.slice(-8).forEach(f=>{
+ingresos.forEach(f=>{
 
 movimientos.push({
-hora:f[0] || "--",
-nombre:f[3] || "Sin nombre",
-rol:f[4] || "-",
+hora:f[0],
+nombre:f[3],
+rol:f[4],
 tipo:"Ingreso"
 });
 
 });
 
-/* SALIDAS */
-salidas.slice(-5).forEach(f=>{
+salidas.forEach(f=>{
 
 movimientos.push({
-hora:f[0] || "--",
-nombre:f[3] || "Sin nombre",
-rol:f[5] || "CONTRATISTA",
+hora:f[0],
+nombre:f[3],
+rol:f[5],
 tipo:"Salida"
 });
 
 });
 
-movimientos.reverse();
+movimientos.sort((a,b)=>
+convertirFecha(b.hora)-convertirFecha(a.hora)
+);
+
+movimientos = movimientos.slice(0,10);
 
 let html = "";
 
@@ -299,9 +343,9 @@ movimientos.forEach(m=>{
 
 html += `
 <tr>
-<td>${m.hora}</td>
-<td>${m.nombre}</td>
-<td>${m.rol}</td>
+<td>${horaBonita(m.hora)}</td>
+<td>${m.nombre || "-"}</td>
+<td>${m.rol || "-"}</td>
 <td>
 ${m.tipo=="Ingreso"
 ? '<span class="badge-in">Ingreso</span>'
@@ -333,7 +377,7 @@ if(!docsSalida.includes(doc)){
 
 activos.push({
 nombre:f[3],
-empresa:f[5] || "-"
+empresa:f[5]
 });
 
 }
@@ -351,7 +395,7 @@ activos.forEach(x=>{
 html += `
 <div class="item">
 <strong>${x.nombre}</strong><br>
-${x.empresa}
+${x.empresa || "-"}
 </div>
 `;
 
@@ -364,10 +408,8 @@ html || "<div class='item'>Sin contratistas activos</div>";
 
 function reloj(){
 
-const ahora = new Date();
-
 document.getElementById("hora").innerText =
-ahora.toLocaleTimeString([],{
+new Date().toLocaleTimeString([],{
 hour:'2-digit',
 minute:'2-digit'
 });
