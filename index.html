@@ -109,23 +109,25 @@
 
   <div class="mensaje" id="mensaje"></div>
 
-  <!-- PRIMERO ROL -->
+  <!-- ROL -->
   <select id="rolSelect" onchange="cambiarVista()">
     <option value="">Defina su rol</option>
     <option value="VISITANTE">Visitante</option>
     <option value="CONTRATISTA">Contratista</option>
+    <option value="PROVEEDOR">Proveedor</option>
   </select>
 
-  <!-- LUEGO CEDULA -->
+  <!-- CEDULA -->
   <div id="zonaCedula" class="hidden">
     <input id="docInput" placeholder="Número de documento">
   </div>
 
-  <!-- BOTONES -->
+  <!-- BOTON INGRESO -->
   <div id="zonaIngreso" class="hidden">
     <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
   </div>
 
+  <!-- BOTON SALIDA -->
   <div id="zonaSalida" class="hidden">
     <button class="btn salida" onclick="irSalida()">Salida</button>
   </div>
@@ -176,7 +178,7 @@ async function cargarDatos(){
 
 window.onload = cargarDatos;
 
-/* CAMBIAR VISTA SEGUN ROL */
+/* CAMBIO DE VISTA */
 function cambiarVista(){
 
   const rol = document.getElementById("rolSelect").value;
@@ -184,10 +186,12 @@ function cambiarVista(){
   document.getElementById("zonaCedula").classList.remove("hidden");
   document.getElementById("zonaIngreso").classList.remove("hidden");
 
+  // SIEMPRE OCULTAR SALIDA PRIMERO
+  document.getElementById("zonaSalida").classList.add("hidden");
+
+  // SOLO CONTRATISTA PUEDE SALIDA
   if(rol === "CONTRATISTA"){
     document.getElementById("zonaSalida").classList.remove("hidden");
-  }else{
-    document.getElementById("zonaSalida").classList.add("hidden");
   }
 }
 
@@ -269,7 +273,7 @@ function irIngreso(){
   window.location.href = url;
 }
 
-/* SALIDA */
+/* SALIDA (SOLO CONTRATISTA) */
 function irSalida(){
 
   const doc = document.getElementById("docInput").value.trim();
@@ -288,7 +292,6 @@ function irSalida(){
 
   const url =
   "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse?" +
-
   "entry.861901166=" + encodeURIComponent(user.tipo) +
   "&entry.1077137573=" + encodeURIComponent(user.doc) +
   "&entry.232043619=" + encodeURIComponent(user.nombre) +
