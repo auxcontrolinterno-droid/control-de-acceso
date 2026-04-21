@@ -9,137 +9,142 @@
 
 <style>
 *{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
+margin:0;
+padding:0;
+box-sizing:border-box;
 }
 
 body{
-  font-family:'Inter',sans-serif;
-  background:linear-gradient(135deg,#eef2f7,#dde6f1);
+font-family:'Inter',sans-serif;
+background:linear-gradient(135deg,#eef2f7,#dde6f1);
+color:#111;
 }
 
 .header{
-  background:#fff;
-  text-align:center;
-  padding:18px;
-  border-bottom:3px solid #0b3d91;
+background:#fff;
+padding:18px;
+text-align:center;
+border-bottom:3px solid #0b3d91;
+box-shadow:0 3px 10px rgba(0,0,0,.05);
 }
 
 .header img{
-  width:180px;
+width:180px;
+max-width:80%;
 }
 
 .header h1{
-  color:#0b3d91;
-  margin-top:10px;
+margin-top:10px;
+font-size:24px;
+color:#0b3d91;
 }
 
 .wrap{
-  width:95%;
-  max-width:1300px;
-  margin:auto;
-  padding:25px 0;
+width:95%;
+max-width:1300px;
+margin:auto;
+padding:25px 0;
 }
 
 .cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px;
-  margin-bottom:25px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+margin-bottom:25px;
 }
 
 .card{
-  background:#fff;
-  border-radius:18px;
-  padding:20px;
-  box-shadow:0 10px 25px rgba(0,0,0,.08);
+background:#fff;
+padding:20px;
+border-radius:18px;
+box-shadow:0 12px 25px rgba(0,0,0,.08);
 }
 
 .card small{
-  color:#666;
-  display:block;
-  margin-bottom:8px;
+display:block;
+font-size:13px;
+color:#666;
+margin-bottom:8px;
 }
 
 .card h2{
-  font-size:34px;
-  color:#0b3d91;
+font-size:34px;
+color:#0b3d91;
 }
 
 .grid{
-  display:grid;
-  grid-template-columns:1.3fr .7fr;
-  gap:18px;
+display:grid;
+grid-template-columns:1.3fr .7fr;
+gap:18px;
 }
 
 .panel{
-  background:#fff;
-  border-radius:18px;
-  padding:20px;
-  box-shadow:0 10px 25px rgba(0,0,0,.08);
+background:#fff;
+padding:20px;
+border-radius:18px;
+box-shadow:0 12px 25px rgba(0,0,0,.08);
 }
 
 .panel h3{
-  color:#0b3d91;
-  margin-bottom:15px;
+margin-bottom:15px;
+color:#0b3d91;
 }
 
 table{
-  width:100%;
-  border-collapse:collapse;
+width:100%;
+border-collapse:collapse;
 }
 
 th{
-  background:#0b3d91;
-  color:white;
-  padding:12px;
-  font-size:13px;
-  text-align:left;
+background:#0b3d91;
+color:white;
+padding:12px;
+font-size:13px;
+text-align:left;
 }
 
 td{
-  padding:11px;
-  border-bottom:1px solid #eee;
-  font-size:14px;
+padding:11px;
+border-bottom:1px solid #eee;
+font-size:14px;
 }
 
 .badge-in{
-  background:#dcfce7;
-  color:#15803d;
-  padding:5px 10px;
-  border-radius:20px;
-  font-size:12px;
-  font-weight:700;
+background:#dcfce7;
+color:#15803d;
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:700;
 }
 
 .badge-out{
-  background:#fee2e2;
-  color:#b91c1c;
-  padding:5px 10px;
-  border-radius:20px;
-  font-size:12px;
-  font-weight:700;
+background:#fee2e2;
+color:#b91c1c;
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:700;
 }
 
 .lista{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
+display:flex;
+flex-direction:column;
+gap:10px;
 }
 
 .item{
-  background:#f8fafc;
-  padding:14px;
-  border-radius:14px;
-  font-size:14px;
+background:#f8fafc;
+padding:14px;
+border-radius:14px;
+font-size:14px;
 }
 
 .footer{
-  text-align:center;
-  margin-top:20px;
-  color:#666;
-  font-size:12px;
+text-align:center;
+margin-top:22px;
+font-size:12px;
+color:#666;
 }
 
 @media(max-width:900px){
@@ -177,7 +182,7 @@ grid-template-columns:1fr;
 </div>
 
 <div class="card">
-<small>Hora</small>
+<small>Hora Actual</small>
 <h2 id="hora" style="font-size:24px;">--:--</h2>
 </div>
 
@@ -200,7 +205,6 @@ grid-template-columns:1fr;
 
 <tbody id="tabla"></tbody>
 </table>
-
 </div>
 
 <div class="panel">
@@ -218,158 +222,160 @@ Actualización automática cada 15 segundos
 
 <script>
 
-/* ==========================
-PEGA TUS LINKS AQUÍ
-========================== */
+/* LINKS REALES */
 
-const URL_INGRESOS = "PEGAR_LINK_INGRESOS";
-const URL_SALIDAS  = "PEGAR_LINK_SALIDAS";
+const URL_INGRESOS =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
-/* ========================== */
+const URL_SALIDAS =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
+
 
 async function leerSheet(url){
 
- const res = await fetch(url);
- const txt = await res.text();
- const json = JSON.parse(txt.substring(47).slice(0,-2));
+const res = await fetch(url);
+const txt = await res.text();
+const json = JSON.parse(txt.substring(47).slice(0,-2));
 
- return json.table.rows.map(r =>
-   (r.c || []).map(x => x ? x.v : "")
- );
-}
-
-async function cargar(){
-
- try{
-
-   const ingresos = await leerSheet(URL_INGRESOS);
-   const salidas  = await leerSheet(URL_SALIDAS);
-
-   let ingresosHoy = ingresos.length;
-   let salidasHoy = salidas.length;
-
-   document.getElementById("ingresos").innerText = ingresosHoy;
-   document.getElementById("salidas").innerText = salidasHoy;
-
-   pintarTabla(ingresos,salidas);
-   contratistasDentro(ingresos,salidas);
-   reloj();
-
- }catch(e){
-   console.log(e);
- }
+return json.table.rows.map(r =>
+(r.c || []).map(x => x ? x.v : "")
+);
 
 }
 
-function pintarTabla(ingresos,salidas){
+async function cargarDashboard(){
 
- let movimientos = [];
+try{
 
- ingresos.slice(-8).forEach(f=>{
+const ingresos = await leerSheet(URL_INGRESOS);
+const salidas  = await leerSheet(URL_SALIDAS);
 
-   movimientos.push({
-     hora:f[0] || "--",
-     nombre:f[2] || "Sin nombre",
-     rol:f[1] || "-",
-     tipo:"Ingreso"
-   });
+document.getElementById("ingresos").innerText = ingresos.length;
+document.getElementById("salidas").innerText  = salidas.length;
 
- });
+ultimosMovimientos(ingresos,salidas);
+contratistasDentro(ingresos,salidas);
+reloj();
 
- salidas.slice(-5).forEach(f=>{
+}catch(e){
+console.log("Error:",e);
+}
 
-   movimientos.push({
-     hora:f[0] || "--",
-     nombre:f[2] || "Sin nombre",
-     rol:"CONTRATISTA",
-     tipo:"Salida"
-   });
+}
 
- });
+function ultimosMovimientos(ingresos,salidas){
 
- movimientos.reverse();
+let movimientos = [];
 
- let html = "";
+/* INGRESOS */
+ingresos.slice(-8).forEach(f=>{
 
- movimientos.forEach(m=>{
+movimientos.push({
+hora:f[0] || "--",
+nombre:f[3] || "Sin nombre",
+rol:f[4] || "-",
+tipo:"Ingreso"
+});
 
-   html += `
-   <tr>
-     <td>${m.hora}</td>
-     <td>${m.nombre}</td>
-     <td>${m.rol}</td>
-     <td>${
-       m.tipo=="Ingreso"
-       ? '<span class="badge-in">Ingreso</span>'
-       : '<span class="badge-out">Salida</span>'
-     }</td>
-   </tr>
-   `;
+});
 
- });
+/* SALIDAS */
+salidas.slice(-5).forEach(f=>{
 
- document.getElementById("tabla").innerHTML = html;
+movimientos.push({
+hora:f[0] || "--",
+nombre:f[3] || "Sin nombre",
+rol:f[5] || "CONTRATISTA",
+tipo:"Salida"
+});
+
+});
+
+movimientos.reverse();
+
+let html = "";
+
+movimientos.forEach(m=>{
+
+html += `
+<tr>
+<td>${m.hora}</td>
+<td>${m.nombre}</td>
+<td>${m.rol}</td>
+<td>
+${m.tipo=="Ingreso"
+? '<span class="badge-in">Ingreso</span>'
+: '<span class="badge-out">Salida</span>'}
+</td>
+</tr>
+`;
+
+});
+
+document.getElementById("tabla").innerHTML = html;
 
 }
 
 function contratistasDentro(ingresos,salidas){
 
- let docsSalida = salidas.map(x => String(x[1]).trim());
+let docsSalida = salidas.map(x => String(x[2]).trim());
 
- let activos = [];
+let activos = [];
 
- ingresos.forEach(f=>{
+ingresos.forEach(f=>{
 
-   const rol = String(f[1]).toUpperCase();
-   const doc = String(f[3]).trim();
+const rol = String(f[4]).toUpperCase();
+const doc = String(f[2]).trim();
 
-   if(rol=="CONTRATISTA"){
+if(rol=="CONTRATISTA"){
 
-     if(!docsSalida.includes(doc)){
-       activos.push({
-         nombre:f[2],
-         empresa:f[5] || "-"
-       });
-     }
+if(!docsSalida.includes(doc)){
 
-   }
+activos.push({
+nombre:f[3],
+empresa:f[5] || "-"
+});
 
- });
+}
 
- document.getElementById("dentro").innerText = activos.length;
+}
 
- let html = "";
+});
 
- activos.forEach(x=>{
+document.getElementById("dentro").innerText = activos.length;
 
-   html += `
-   <div class="item">
-   <strong>${x.nombre}</strong><br>
-   ${x.empresa}
-   </div>
-   `;
+let html = "";
 
- });
+activos.forEach(x=>{
 
- document.getElementById("listaDentro").innerHTML =
- html || "<div class='item'>Sin contratistas activos</div>";
+html += `
+<div class="item">
+<strong>${x.nombre}</strong><br>
+${x.empresa}
+</div>
+`;
+
+});
+
+document.getElementById("listaDentro").innerHTML =
+html || "<div class='item'>Sin contratistas activos</div>";
 
 }
 
 function reloj(){
 
- const ahora = new Date();
+const ahora = new Date();
 
- document.getElementById("hora").innerText =
- ahora.toLocaleTimeString([],{
-   hour:'2-digit',
-   minute:'2-digit'
- });
+document.getElementById("hora").innerText =
+ahora.toLocaleTimeString([],{
+hour:'2-digit',
+minute:'2-digit'
+});
 
 }
 
-cargar();
-setInterval(cargar,15000);
+cargarDashboard();
+setInterval(cargarDashboard,15000);
 
 </script>
 
