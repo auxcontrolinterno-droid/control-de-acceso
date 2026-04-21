@@ -75,9 +75,7 @@
     .ingreso{ background:#0b3d91; }
     .salida{ background:#c62828; }
 
-    .hidden{
-      display:none;
-    }
+    .hidden{ display:none; }
 
     .footer{
       font-size:11px;
@@ -117,17 +115,17 @@
     <option value="PROVEEDOR">Proveedor</option>
   </select>
 
-  <!-- CEDULA -->
+  <!-- CÉDULA -->
   <div id="zonaCedula" class="hidden">
     <input id="docInput" placeholder="Número de documento">
   </div>
 
-  <!-- BOTON INGRESO -->
+  <!-- INGRESO -->
   <div id="zonaIngreso" class="hidden">
     <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
   </div>
 
-  <!-- BOTON SALIDA -->
+  <!-- SALIDA -->
   <div id="zonaSalida" class="hidden">
     <button class="btn salida" onclick="irSalida()">Salida</button>
   </div>
@@ -178,7 +176,7 @@ async function cargarDatos(){
 
 window.onload = cargarDatos;
 
-/* CAMBIO DE VISTA */
+/* 🔧 CAMBIO CLAVE: PROVEEDOR TAMBIÉN TIENE SALIDA */
 function cambiarVista(){
 
   const rol = document.getElementById("rolSelect").value;
@@ -186,11 +184,9 @@ function cambiarVista(){
   document.getElementById("zonaCedula").classList.remove("hidden");
   document.getElementById("zonaIngreso").classList.remove("hidden");
 
-  // SIEMPRE OCULTAR SALIDA PRIMERO
   document.getElementById("zonaSalida").classList.add("hidden");
 
-  // SOLO CONTRATISTA PUEDE SALIDA
-  if(rol === "CONTRATISTA"){
+  if(rol === "CONTRATISTA" || rol === "PROVEEDOR"){
     document.getElementById("zonaSalida").classList.remove("hidden");
   }
 }
@@ -230,13 +226,8 @@ function irIngreso(){
   const doc = document.getElementById("docInput").value.trim();
   const rol = document.getElementById("rolSelect").value;
 
-  if(!doc){
-    alert("Ingrese documento");
-    return;
-  }
-
-  if(!rol){
-    alert("Seleccione rol");
+  if(!doc || !rol){
+    alert("Complete los datos");
     return;
   }
 
@@ -244,36 +235,24 @@ function irIngreso(){
 
   const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
-  if(!user){
-
-    const url =
-      form +
-      "?usp=pp_url" +
-      "&entry.1086354848=" + encodeURIComponent(rol) +
-      "&entry.311902120=" + encodeURIComponent(doc);
-
-    window.location.href = url;
-    return;
-  }
-
   const url =
     form +
     "?usp=pp_url" +
     "&entry.1086354848=" + encodeURIComponent(rol) +
-    "&entry.1899230705=" + encodeURIComponent(user.nombre) +
-    "&entry.2083119061=" + encodeURIComponent(user.tipo) +
-    "&entry.311902120=" + encodeURIComponent(user.doc) +
-    "&entry.477144471=" + encodeURIComponent(user.contacto) +
-    "&entry.1527361506=" + encodeURIComponent(user.entidad) +
-    "&entry.1268448003=" + encodeURIComponent(user.placa) +
-    "&entry.1316902717=" + encodeURIComponent(user.emergencia) +
-    "&entry.539345216=" + encodeURIComponent(user.parentesco) +
-    "&entry.1651701540=" + encodeURIComponent(user.rol);
+    "&entry.1899230705=" + encodeURIComponent(user ? user.nombre : "") +
+    "&entry.2083119061=" + encodeURIComponent(user ? user.tipo : "") +
+    "&entry.311902120=" + encodeURIComponent(doc) +
+    "&entry.477144471=" + encodeURIComponent(user ? user.contacto : "") +
+    "&entry.1527361506=" + encodeURIComponent(user ? user.entidad : "") +
+    "&entry.1268448003=" + encodeURIComponent(user ? user.placa : "") +
+    "&entry.1316902717=" + encodeURIComponent(user ? user.emergencia : "") +
+    "&entry.539345216=" + encodeURIComponent(user ? user.parentesco : "") +
+    "&entry.1651701540=" + encodeURIComponent(user ? user.rol : "");
 
   window.location.href = url;
 }
 
-/* SALIDA (SOLO CONTRATISTA) */
+/* SALIDA */
 function irSalida(){
 
   const doc = document.getElementById("docInput").value.trim();
