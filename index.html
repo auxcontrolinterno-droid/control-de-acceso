@@ -270,10 +270,10 @@ function irSalida(){
 
   const url =
     form +
-    "?entry.861901166=" + encodeURIComponent(user ? user.nombre : "") +
+    "?entry.232043619=" + encodeURIComponent(user ? user.nombre : "") +
     "&entry.1077137573=" + encodeURIComponent(user ? user.tipo : "") +
-    "&entry.232043619=" + encodeURIComponent(doc) +
-    "&entry.2097525574=" + encodeURIComponent(rol);
+    "&entry.861901166=" + encodeURIComponent(doc) +
+    "&entry.349719305=" + encodeURIComponent(rol);
 
   fetch(url, { mode: "no-cors" })
   .then(()=>{
@@ -282,7 +282,6 @@ function irSalida(){
   });
 
 }
-
 </script>
 
 </body>
