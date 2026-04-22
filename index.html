@@ -194,8 +194,7 @@ if(!doc){alert("Ingrese documento");return;}
 const user = getUser();
 if(!user){alert("Usuario no encontrado");return;}
 
-const rolFinal = rolSeleccionado || "VISITANTE";
-
+const rolFinal = document.getElementById("rolSelect").value.trim().toUpperCase();
 const form =
 "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
 
