@@ -195,32 +195,22 @@ function cambiarVista(){
 
 /* BUSCAR USUARIO */
 function getUser(){
+
   const doc = document.getElementById("docInput").value.trim();
   if(!doc) return null;
 
-  return data.find(u => String(u.doc).trim() === doc);
+  // 🔥 Buscar desde el final (registro más reciente)
+  for(let i = data.length - 1; i >= 0; i--){
+
+    const u = data[i];
+
+    if(String(u.doc).trim() === doc){
+      return u;
+    }
+  }
+
+  return null;
 }
-
-/* MENSAJE */
-document.addEventListener("input", function(e){
-
-  if(e.target.id !== "docInput") return;
-
-  const user = getUser();
-  const mensaje = document.getElementById("mensaje");
-
-  if(!e.target.value){
-    mensaje.innerText = "";
-    return;
-  }
-
-  if(user){
-    mensaje.innerText = "Bienvenido nuevamente, " + user.nombre.split(" ")[0] + " 👋";
-  }else{
-    mensaje.innerText = "Bienvenido a nuestras instalaciones 😊";
-  }
-
-});
 
 /* INGRESO */
 function irIngreso(){
