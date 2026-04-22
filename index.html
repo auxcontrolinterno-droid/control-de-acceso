@@ -256,6 +256,7 @@ function irIngreso(){
 function irSalida(){
 
   const doc = document.getElementById("docInput").value.trim();
+  const rol = document.getElementById("rolSelect").value;
 
   if(!doc){
     alert("Ingrese documento");
@@ -264,27 +265,20 @@ function irSalida(){
 
   const user = getUser();
 
-  if(!user){
-    alert("Usuario no encontrado");
-    return;
-  }
+  const form =
+  "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
 
   const url =
-  "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse?" +
-  "entry.861901166=" + encodeURIComponent(user.tipo) +
-  "&entry.1077137573=" + encodeURIComponent(user.doc) +
-  "&entry.232043619=" + encodeURIComponent(user.nombre) +
-  "&entry.666367411=" + encodeURIComponent(user.contacto) +
-  "&entry.2097525574=" + encodeURIComponent(user.rol) +
-  "&entry.2053464900=" + encodeURIComponent(user.entidad) +
-  "&entry.335364680=" + encodeURIComponent(user.placa) +
-  "&entry.1230591168=" + encodeURIComponent(user.emergencia) +
-  "&entry.620468493=" + encodeURIComponent(user.parentesco);
+    form +
+    "?entry.861901166=" + encodeURIComponent(user ? user.nombre : "") +
+    "&entry.1077137573=" + encodeURIComponent(user ? user.tipo : "") +
+    "&entry.232043619=" + encodeURIComponent(doc) +
+    "&entry.2097525574=" + encodeURIComponent(rol);
 
-  fetch(url,{mode:"no-cors"})
+  fetch(url, { mode: "no-cors" })
   .then(()=>{
-      alert("Salida registrada correctamente");
-      location.reload();
+    alert("Salida registrada correctamente");
+    location.reload();
   });
 
 }
