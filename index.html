@@ -288,33 +288,29 @@ function irSalida(){
     return;
   }
 
-  // 🔥 ROL REAL
   const rolFinal = (user.rol || "VISITANTE").toUpperCase();
 
+  const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
+
   const url =
-  "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse?" +
+    form +
+    "?usp=pp_url" +
 
-  // 🔥 1. ROL (PRIMERA PREGUNTA)
-  "entry.349719305=" + encodeURIComponent(rolFinal) +
+    // 🔥 CAMPOS REALES DE TU FORMULARIO DE SALIDA
+    "&entry.349719305=" + encodeURIComponent(rolFinal) +
+    "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
+    "&entry.861901166=" + encodeURIComponent(user.tipo || "") +
+    "&entry.1077137573=" + encodeURIComponent(user.doc || "") +
 
-  // 🔥 2. NOMBRE
-  "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
+    // 🔥 AGREGA ESTOS SI TAMBIÉN EXISTEN EN TU FORM DE SALIDA
+    "&entry.477144471=" + encodeURIComponent(user.contacto || "") +
+    "&entry.1527361506=" + encodeURIComponent(user.entidad || "") +
+    "&entry.1268448003=" + encodeURIComponent(user.placa || "") +
+    "&entry.1316902717=" + encodeURIComponent(user.emergencia || "") +
+    "&entry.539345216=" + encodeURIComponent(user.parentesco || "");
 
-  // 🔥 3. TIPO DOCUMENTO
-  "&entry.861901166=" + encodeURIComponent(user.tipo || "") +
-
-  // 🔥 4. DOCUMENTO
-  "&entry.1077137573=" + encodeURIComponent(user.doc || "");
-
-  fetch(url, { mode: "no-cors" });
-
-  document.getElementById("mensaje").innerText =
-    "Salida registrada correctamente ✔";
-
-  document.getElementById("docInput").value = "";
-
+  window.location.href = url;
 }
-
 </script>
 
 </body>
