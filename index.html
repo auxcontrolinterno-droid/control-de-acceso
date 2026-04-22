@@ -287,20 +287,20 @@ function irSalida(){
     return;
   }
 
-  // 🔥 TOMAR EL REGISTRO MÁS RECIENTE DEL MISMO DOCUMENTO
-  const historial = [...data].reverse().find(u => String(u.doc).trim() === doc) || user;
+  const rolFinal = (user.rol || "VISITANTE").toUpperCase();
 
-  const rolFinal = (historial.rol || "VISITANTE").toUpperCase();
+  const formData = new URLSearchParams();
 
-  const url =
-  "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse?" +
+  formData.append("entry.349719305", rolFinal);
+  formData.append("entry.232043619", user.nombre || "");
+  formData.append("entry.861901166", user.tipo || "");
+  formData.append("entry.1077137573", user.doc || "");
 
-  "entry.349719305=" + encodeURIComponent(rolFinal) +
-  "&entry.232043619=" + encodeURIComponent(historial.nombre || "") +
-  "&entry.861901166=" + encodeURIComponent(historial.tipo || "") +
-  "&entry.1077137573=" + encodeURIComponent(historial.doc || "");
-
-  fetch(url, { mode: "no-cors" });
+  fetch("https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse", {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  });
 
   document.getElementById("mensaje").innerText =
     "Salida registrada correctamente ✔";
