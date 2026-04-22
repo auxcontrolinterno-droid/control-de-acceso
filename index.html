@@ -114,17 +114,17 @@
     <option value="PROVEEDOR">Proveedor</option>
   </select>
 
-  <!-- CÉDULA -->
+  <!-- DOCUMENTO -->
   <div id="zonaCedula" class="hidden">
     <input id="docInput" placeholder="Número de documento">
   </div>
 
-  <!-- INGRESO -->
+  <!-- BOTÓN INGRESO -->
   <div id="zonaIngreso" class="hidden">
     <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
   </div>
 
-  <!-- SALIDA -->
+  <!-- BOTÓN SALIDA -->
   <div id="zonaSalida" class="hidden">
     <button class="btn salida" onclick="irSalida()">Salida</button>
   </div>
@@ -137,6 +137,7 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7
 
 let data = [];
 
+/* CARGAR BASE DE INGRESOS */
 async function cargarDatos(){
   try{
     const res = await fetch(SHEET_URL);
@@ -150,12 +151,7 @@ async function cargarDatos(){
         tipo:c[1] || "",
         doc:c[2] || "",
         nombre:c[3] || "",
-        rol:c[4] || "",
-        entidad:c[5] || "",
-        placa:c[6] || "",
-        contacto:c[8] || "",
-        emergencia:c[9] || "",
-        parentesco:c[11] || ""
+        rol:c[4] || ""
       };
     });
 
@@ -166,7 +162,7 @@ async function cargarDatos(){
 
 window.onload = cargarDatos;
 
-/* 🔧 PROVEEDOR TAMBIÉN PUEDE SALIDA */
+/* ROLES */
 function cambiarVista(){
 
   const rol = document.getElementById("rolSelect").value;
@@ -176,17 +172,17 @@ function cambiarVista(){
 
   if(rol === "CONTRATISTA" || rol === "PROVEEDOR"){
     document.getElementById("zonaSalida").classList.remove("hidden");
-  } else {
+  }else{
     document.getElementById("zonaSalida").classList.add("hidden");
   }
 }
 
-/* BUSCAR USUARIO */
+/* BUSCAR EN INGRESOS */
 function getUser(){
   const doc = document.getElementById("docInput").value.trim();
   if(!doc) return null;
 
-  return data.find(u => String(u.doc).trim() === doc);
+  return data.find(u => String(u.doc).trim() === String(doc));
 }
 
 /* MENSAJE */
@@ -204,10 +200,9 @@ document.addEventListener("input", function(e){
 
   if(user){
     mensaje.innerText = "Bienvenido nuevamente, " + user.nombre.split(" ")[0] + " 👋";
-  } else {
+  }else{
     mensaje.innerText = "Bienvenido a nuestras instalaciones 😊";
   }
-
 });
 
 /* INGRESO */
@@ -228,13 +223,12 @@ function irIngreso(){
     "?entry.1086354848=" + encodeURIComponent(rol) +
     "&entry.1899230705=" + encodeURIComponent(user ? user.nombre : "") +
     "&entry.2083119061=" + encodeURIComponent(user ? user.tipo : "") +
-    "&entry.311902120=" + encodeURIComponent(doc) +
-    "&entry.1651701540=" + encodeURIComponent(rol);
+    "&entry.311902120=" + encodeURIComponent(doc);
 
   window.location.href = url;
 }
 
-/* 🚪 SALIDA (ARREGLADA Y FUNCIONAL 100%) */
+/* SALIDA FINAL FUNCIONAL */
 function irSalida(){
 
   const doc = document.getElementById("docInput").value.trim();
@@ -247,14 +241,17 @@ function irSalida(){
 
   const user = getUser();
 
+  const tipoDocumento = user ? user.tipo : "No registrado";
+  const nombre = user ? user.nombre : "";
+  const documento = user ? user.doc : doc;
+
   const url =
     "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse" +
-    "?entry.232043619=" + encodeURIComponent(user ? user.nombre : "") +
-    "&entry.861901166=" + encodeURIComponent(doc) +
-    "&entry.1077137573=" + encodeURIComponent(user ? user.tipo : "") +
+    "?entry.232043619=" + encodeURIComponent(nombre) +
+    "&entry.861901166=" + encodeURIComponent(documento) +
+    "&entry.1077137573=" + encodeURIComponent(tipoDocumento) +
     "&entry.349719305=" + encodeURIComponent(rol);
 
-  // 🔥 IMPORTANTE: redirección directa (esto SÍ guarda en Sheets)
   window.location.href = url;
 }
 
