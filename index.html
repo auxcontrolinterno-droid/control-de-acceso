@@ -188,40 +188,29 @@ document.getElementById("mensaje").innerText = "Ingreso registrado ✔";
 
 function irSalida(){
 
-  const doc = document.getElementById("docInput").value.trim();
+const doc = document.getElementById("docInput").value.trim();
+if(!doc){alert("Ingrese documento");return;}
 
-  if(!doc){
-    alert("Ingrese documento");
-    return;
-  }
+const user = getUser();
+if(!user){alert("Usuario no encontrado");return;}
 
-  const user = getUser();
+const rolFinal = rolSeleccionado || "VISITANTE";
 
-  if(!user){
-    alert("Usuario no encontrado");
-    return;
-  }
+const form =
+"https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
 
-  const rolFinal = document.getElementById("rolSelect").value.trim().toUpperCase();
+const url =
+form +
+"?entry.349719305=" + encodeURIComponent(rolFinal) +
+"&entry.232043619=" + encodeURIComponent(user[3]) +
+"&entry.861901166=" + encodeURIComponent(user[4]) +
+"&entry.1077137573=" + encodeURIComponent(user[2]);
 
-  const url =
-  "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse" +
+fetch(url,{mode:"no-cors"});
 
-  "?entry.349719305=" + encodeURIComponent(rolFinal) +
-  "&entry.232043619=" + encodeURIComponent(user[3]) +
-  "&entry.861901166=" + encodeURIComponent(user[4]) +
-  "&entry.1077137573=" + encodeURIComponent(user[2]);
+document.getElementById("mensaje").innerText = "Salida registrada ✔";
 
-  // 🔥 ENVÍO SEGURO
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = url;
-  document.body.appendChild(iframe);
-
-  document.getElementById("mensaje").innerText =
-    "Salida registrada ✔";
-
-  document.getElementById("docInput").value = "";
+document.getElementById("docInput").value = "";
 
 }
 
