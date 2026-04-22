@@ -1,42 +1,220 @@
-function irSalida(){
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Control de Acceso Altamira</title>
 
-  const doc = document.getElementById("docInput").value.trim();
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-  if(!doc){
-    alert("Ingrese documento");
-    return;
-  }
+<style>
+body{
+font-family:'Inter',sans-serif;
+background:linear-gradient(135deg,#e9eef5,#dfe7f1);
+margin:0;
+text-align:center;
+}
 
-  const user = getUser();
+.header{
+background:white;
+padding:10px 0;
+border-bottom:2px solid #0b3d91;
+}
 
-  if(!user){
-    alert("Usuario no encontrado");
-    return;
-  }
+.header img{
+width:180px;
+max-width:80%;
+}
 
-  // 🔥 ROL REAL
-  const rolFinal = (user.rol || "VISITANTE").toUpperCase();
+.container{
+background:white;
+width:90%;
+max-width:380px;
+margin:25px auto;
+padding:20px;
+border-radius:18px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
 
-  const url =
-  "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse?" +
+h2{color:#0b3d91}
 
-  // 🔥 1. ROL (PRIMERA PREGUNTA)
-  "entry.349719305=" + encodeURIComponent(rolFinal) +
+input,select{
+width:80%;
+padding:10px;
+margin:10px 0;
+border-radius:10px;
+border:1px solid #ccc;
+}
 
-  // 🔥 2. NOMBRE
-  "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+color:white;
+cursor:pointer;
+margin-top:10px;
+}
 
-  // 🔥 3. TIPO DOCUMENTO
-  "&entry.861901166=" + encodeURIComponent(user.tipo || "") +
+.ingreso{background:#0b3d91;}
+.salida{background:#c62828;}
 
-  // 🔥 4. DOCUMENTO
-  "&entry.1077137573=" + encodeURIComponent(user.doc || "");
+.hidden{display:none;}
 
-  fetch(url, { mode: "no-cors" });
+.mensaje{
+font-size:13px;
+margin:10px 0;
+color:#444;
+min-height:20px;
+}
+</style>
+</head>
 
-  document.getElementById("mensaje").innerText =
-    "Salida registrada correctamente ✔";
+<body>
 
-  document.getElementById("docInput").value = "";
+<div class="header">
+<img src="https://i.imgur.com/OB279U8.jpeg">
+</div>
+
+<div class="container">
+
+<h2>Control de Acceso</h2>
+
+<div class="mensaje" id="mensaje"></div>
+
+<select id="rolSelect" onchange="cambiarVista()">
+<option value="">Defina su rol</option>
+<option value="VISITANTE">Visitante</option>
+<option value="CONTRATISTA">Contratista</option>
+</select>
+
+<div id="zonaCedula" class="hidden">
+<input id="docInput" placeholder="Número de documento">
+</div>
+
+<div id="zonaIngreso" class="hidden">
+<button class="ingreso" onclick="irIngreso()">Ingreso</button>
+</div>
+
+<div id="zonaSalida" class="hidden">
+<button class="salida" onclick="irSalida()">Salida</button>
+</div>
+
+</div>
+
+<script>
+
+/* =======================
+   ROL GLOBAL
+======================= */
+let rolSeleccionado = "";
+
+/* =======================
+   CAMBIO DE ROL
+======================= */
+function cambiarVista(){
+
+const rol = document.getElementById("rolSelect").value;
+
+rolSeleccionado = rol;
+
+document.getElementById("zonaCedula").classList.remove("hidden");
+document.getElementById("zonaIngreso").classList.remove("hidden");
+
+if(rol === "CONTRATISTA"){
+document.getElementById("zonaSalida").classList.remove("hidden");
+}else{
+document.getElementById("zonaSalida").classList.add("hidden");
+}
+}
+
+/* =======================
+   BASE DE DATOS
+======================= */
+
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+
+let data = [];
+
+async function cargarDatos(){
+
+const res = await fetch(SHEET_URL);
+const text = await res.text();
+const json = JSON.parse(text.substring(47).slice(0,-2));
+
+data = json.table.rows.map(r =>
+(r.c || []).map(x => x ? x.v : "")
+);
 
 }
+
+window.onload = cargarDatos;
+
+function getUser(){
+const doc = document.getElementById("docInput").value.trim();
+return data.find(u => String(u[2]).trim() === doc);
+}
+
+/* =======================
+   INGRESO
+======================= */
+
+function irIngreso(){
+
+const doc = document.getElementById("docInput").value.trim();
+if(!doc){alert("Ingrese documento");return;}
+
+const user = getUser();
+if(!user){alert("Usuario no encontrado");return;}
+
+const form =
+"https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/formResponse";
+
+const url =
+form +
+"?entry.1086354848=" + encodeURIComponent(rolSeleccionado) +
+"&entry.1899230705=" + encodeURIComponent(user[3]) +
+"&entry.2083119061=" + encodeURIComponent(user[4]) +
+"&entry.311902120=" + encodeURIComponent(user[2]);
+
+fetch(url,{mode:"no-cors"});
+
+document.getElementById("mensaje").innerText = "Ingreso registrado ✔";
+}
+
+/* =======================
+   SALIDA (CORREGIDO)
+======================= */
+
+function irSalida(){
+
+const doc = document.getElementById("docInput").value.trim();
+if(!doc){alert("Ingrese documento");return;}
+
+const user = getUser();
+if(!user){alert("Usuario no encontrado");return;}
+
+const rolFinal = rolSeleccionado || "VISITANTE";
+
+const form =
+"https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
+
+const url =
+form +
+"?entry.349719305=" + encodeURIComponent(rolFinal) +
+"&entry.232043619=" + encodeURIComponent(user[3]) +
+"&entry.861901166=" + encodeURIComponent(user[4]) +
+"&entry.1077137573=" + encodeURIComponent(user[2]);
+
+fetch(url,{mode:"no-cors"});
+
+document.getElementById("mensaje").innerText = "Salida registrada ✔";
+
+document.getElementById("docInput").value = "";
+
+}
+
+</script>
+
+</body>
+</html>
