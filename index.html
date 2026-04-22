@@ -223,31 +223,51 @@ function irIngreso(){
   const doc = document.getElementById("docInput").value.trim();
   const rol = document.getElementById("rolSelect").value;
 
-  if(!doc || !rol){
-    alert("Complete los datos");
+  if(!doc){
+    alert("Ingrese documento");
+    return;
+  }
+
+  if(!rol){
+    alert("Seleccione rol");
     return;
   }
 
   const user = getUser();
 
-  const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
+  const form =
+  "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
+  // Si NO existe en base de datos
   if(!user){
-    window.location.href =
+
+    const url =
       form +
       "?usp=pp_url" +
       "&entry.1086354848=" + encodeURIComponent(rol) +
       "&entry.311902120=" + encodeURIComponent(doc);
+
+    window.location.href = url;
     return;
   }
 
-  window.location.href =
+  // Si existe en base de datos → llenado completo
+  const url =
     form +
     "?usp=pp_url" +
+
     "&entry.1086354848=" + encodeURIComponent(rol) +
-    "&entry.1899230705=" + encodeURIComponent(user.nombre) +
-    "&entry.2083119061=" + encodeURIComponent(user.tipo) +
-    "&entry.311902120=" + encodeURIComponent(user.doc);
+    "&entry.1899230705=" + encodeURIComponent(user.nombre || "") +
+    "&entry.2083119061=" + encodeURIComponent(user.tipo || "") +
+    "&entry.311902120=" + encodeURIComponent(user.doc || "") +
+    "&entry.477144471=" + encodeURIComponent(user.contacto || "") +
+    "&entry.1527361506=" + encodeURIComponent(user.entidad || "") +
+    "&entry.1268448003=" + encodeURIComponent(user.placa || "") +
+    "&entry.1316902717=" + encodeURIComponent(user.emergencia || "") +
+    "&entry.539345216=" + encodeURIComponent(user.parentesco || "") +
+    "&entry.1651701540=" + encodeURIComponent(user.rol || "");
+
+  window.location.href = url;
 }
 
 /* SALIDA */
