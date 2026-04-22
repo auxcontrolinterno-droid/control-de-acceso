@@ -265,18 +265,28 @@ function irSalida(){
 
   const user = getUser();
 
-  const form =
-  "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
-
   const url =
-    form +
-    "?usp=pp_url" +
-    "&entry.232043619=" + encodeURIComponent(user ? user.nombre : "") +
-    "&entry.1077137573=" + encodeURIComponent(user ? user.tipo : "") +
-    "&entry.861901166=" + encodeURIComponent(doc) +
-    "&entry.349719305=" + encodeURIComponent(rol);
+    "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
 
-  fetch(url, { mode: "no-cors" })
+  const params = new URLSearchParams();
+
+  // 1. Nombre
+  params.append("entry.232043619", user ? user.nombre : "");
+
+  // 2. Documento
+  params.append("entry.861901166", doc);
+
+  // 3. Tipo
+  params.append("entry.1077137573", user ? user.tipo : "");
+
+  // 4. Rol
+  params.append("entry.349719305", rol);
+
+  fetch(url, {
+    method: "POST",
+    mode: "no-cors",
+    body: params
+  })
   .then(()=>{
     alert("Salida registrada correctamente");
     location.reload();
