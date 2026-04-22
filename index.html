@@ -268,36 +268,51 @@ function irIngreso(){
 }  
   
 /* SALIDA */  
-function irSalida(){  
-  
-  const doc = document.getElementById("docInput").value.trim();  
-  const tipoDoc = document.getElementById("tipoDocInput").value;  
-  
-  if(!doc || !tipoDoc){  
-    alert("Complete los campos");  
-    return;  
-  }  
-  
-  const user = getUser();  
-  
-  if(!user){  
-    alert("Usuario no encontrado");  
-    return;  
-  }  
-   
-  
-  const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";  
-  
-  const url =  
-    form +  
-    "?usp=pp_url" +  
-    "&entry.349719305=" + encodeURIComponent(normalizarRol(user.rol)) +  
-    "&entry.232043619=" + encodeURIComponent(user.nombre || "") +  
-    "&entry.861901166=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +  
-    "&entry.1077137573=" + encodeURIComponent(user.doc || "");  
-  
-  window.location.href = url;  
-}  
-  
+<script>
+function irSalida(){
+
+  const doc = document.getElementById("docInput").value.trim();
+  const tipoDoc = document.getElementById("tipoDocInput").value;
+
+  if(!doc || !tipoDoc){
+    alert("Complete los campos");
+    return;
+  }
+
+  const user = getUser();
+
+  if(!user){
+    alert("Usuario no encontrado");
+    return;
+  }
+
+  const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
+
+  const url =
+    form +
+    "?usp=pp_url" +
+    "&entry.349719305=" + encodeURIComponent(normalizarRol(user.rol)) +
+    "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
+    "&entry.861901166=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
+    "&entry.1077137573=" + encodeURIComponent(user.doc || "");
+
+  let iframe = document.getElementById("envioOculto");
+
+  if(!iframe){
+    iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.id = "envioOculto";
+    document.body.appendChild(iframe);
+  }
+
+  iframe.src = url;
+
+  document.getElementById("mensaje").innerText =
+    "✅ Se registró exitosamente su salida";
+
+  document.getElementById("docInput").value = "";
+  document.getElementById("tipoDocInput").value = "";
+}
+</script>
 </script>  </body>  
 </html>  
