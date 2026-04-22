@@ -37,10 +37,19 @@
     }
 
     h2{
-      margin-bottom:10px;
+      margin-bottom:5px;
       color:#0b3d91;
       font-size:24px;
       font-weight:700;
+    }
+
+    /* 👇 NUEVO MENSAJE BIENVENIDA */
+    .bienvenida{
+      font-size:14px;
+      color:#0b3d91;
+      font-weight:600;
+      min-height:20px;
+      margin-bottom:15px;
     }
 
     .mensaje{
@@ -92,79 +101,10 @@
       color:#000;
       font-weight:700;
     }
-
-    /* =========================
-       OVERLAY BONITO
-    ========================= */
-
-    .overlay{
-      position:fixed;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:rgba(0,0,0,0.35);
-      backdrop-filter: blur(6px);
-      z-index:9999;
-    }
-
-    .card{
-      background:white;
-      padding:25px;
-      border-radius:18px;
-      width:85%;
-      max-width:320px;
-      box-shadow:0 15px 35px rgba(0,0,0,0.2);
-      text-align:center;
-      animation:pop .25s ease;
-    }
-
-    .card input{
-      width:100%;
-      margin-top:15px;
-      padding:12px;
-      border-radius:10px;
-      border:1px solid #ccc;
-      text-align:center;
-    }
-
-    #msgInicio{
-      font-size:15px;
-      color:#333;
-      font-weight:600;
-    }
-
-    #bienvenida{
-      margin-top:10px;
-      font-size:18px;
-      font-weight:700;
-      color:#0b3d91;
-    }
-
-    @keyframes pop{
-      from{transform:scale(0.9);opacity:0;}
-      to{transform:scale(1);opacity:1;}
-    }
-
   </style>
 </head>
 
 <body>
-
-<!-- 🔵 OVERLAY -->
-<div id="overlay" class="overlay">
-
-  <div class="card">
-
-    <div id="msgInicio">Registre su ingreso / salida</div>
-
-    <input id="docInput" placeholder="Ingrese documento">
-
-    <div id="bienvenida"></div>
-
-  </div>
-
-</div>
 
 <div class="header">
   <img src="https://i.imgur.com/OB279U8.jpeg">
@@ -173,6 +113,9 @@
 <div class="container">
 
   <h2>Control de Acceso</h2>
+
+  <!-- 👇 BIENVENIDA AQUÍ -->
+  <div class="bienvenida" id="bienvenida"></div>
 
   <div class="mensaje" id="mensaje"></div>
 
@@ -192,6 +135,8 @@
       <option value="Cedula de Extranjeria">Cédula de Extranjería</option>
       <option value="Pasaporte">Pasaporte</option>
     </select>
+
+    <input id="docInput" placeholder="Numero de documento">
 
   </div>
 
@@ -219,10 +164,6 @@
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
 let data = [];
-
-/* =========================
-   CARGA BASE
-========================= */
 
 async function cargarDatos(){
   try{
@@ -254,31 +195,31 @@ async function cargarDatos(){
 window.onload = cargarDatos;
 
 /* =========================
-   OVERLAY LÓGICA
+   BIENVENIDA (AQUÍ ESTÁ EL CAMBIO)
 ========================= */
 
-const overlay = document.getElementById("overlay");
 const docInput = document.getElementById("docInput");
-const msgInicio = document.getElementById("msgInicio");
 const bienvenida = document.getElementById("bienvenida");
+const mensaje = document.getElementById("mensaje");
 
-docInput.addEventListener("input", () => {
+docInput?.addEventListener("input", () => {
 
   const doc = docInput.value.trim();
-  if(doc.length < 4) return;
+
+  if(!doc){
+    bienvenida.innerText = "";
+    mensaje.innerText = "";
+    return;
+  }
 
   const user = getUser();
 
-  msgInicio.style.display = "none";
-
-  bienvenida.innerText =
-    user && user.nombre
-      ? "Bienvenido " + user.nombre.split(" ")[0] + " 👋"
-      : "Bienvenido 👋";
-
-  setTimeout(()=>{
-    overlay.style.display = "none";
-  },1800);
+  if(user && user.nombre){
+    bienvenida.innerText = "👋 Bienvenido " + user.nombre.split(" ")[0];
+    mensaje.innerText = "";
+  }else{
+    bienvenida.innerText = "👋 Bienvenido visitante";
+  }
 
 });
 
@@ -349,7 +290,7 @@ function irIngreso(){
 }
 
 /* =========================
-   SALIDA (AUTO)
+   SALIDA
 ========================= */
 
 function irSalida(){
