@@ -37,19 +37,10 @@
     }
 
     h2{
-      margin-bottom:5px;
+      margin-bottom:10px;
       color:#0b3d91;
       font-size:24px;
       font-weight:700;
-    }
-
-    /* 👇 NUEVO MENSAJE BIENVENIDA */
-    .bienvenida{
-      font-size:14px;
-      color:#0b3d91;
-      font-weight:600;
-      min-height:20px;
-      margin-bottom:15px;
     }
 
     .mensaje{
@@ -114,11 +105,9 @@
 
   <h2>Control de Acceso</h2>
 
-  <!-- 👇 BIENVENIDA AQUÍ -->
-  <div class="bienvenida" id="bienvenida"></div>
-
   <div class="mensaje" id="mensaje"></div>
 
+  <!-- ROL -->
   <select id="rolSelect" onchange="cambiarVista()">
     <option value="">Defina su rol</option>
     <option value="VISITANTE">VISITANTE</option>
@@ -126,6 +115,7 @@
     <option value="PROVEEDOR">PROVEEDOR</option>
   </select>
 
+  <!-- DOCUMENTO + TIPO -->
   <div id="zonaCedula" class="hidden">
 
     <select id="tipoDocInput">
@@ -140,6 +130,7 @@
 
   </div>
 
+  <!-- BOTONES -->
   <div id="zonaIngreso" class="hidden">
     <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
   </div>
@@ -188,45 +179,13 @@ async function cargarDatos(){
     });
 
   }catch(e){
-    console.log(e);
+    alert("Error cargando base");
   }
 }
 
 window.onload = cargarDatos;
 
-/* =========================
-   BIENVENIDA (AQUÍ ESTÁ EL CAMBIO)
-========================= */
-
-const docInput = document.getElementById("docInput");
-const bienvenida = document.getElementById("bienvenida");
-const mensaje = document.getElementById("mensaje");
-
-docInput?.addEventListener("input", () => {
-
-  const doc = docInput.value.trim();
-
-  if(!doc){
-    bienvenida.innerText = "";
-    mensaje.innerText = "";
-    return;
-  }
-
-  const user = getUser();
-
-  if(user && user.nombre){
-    bienvenida.innerText = "👋 Bienvenido " + user.nombre.split(" ")[0];
-    mensaje.innerText = "";
-  }else{
-    bienvenida.innerText = "👋 Bienvenido visitante";
-  }
-
-});
-
-/* =========================
-   VISTA
-========================= */
-
+/* VISTA */
 function cambiarVista(){
 
   document.getElementById("zonaCedula").classList.remove("hidden");
@@ -241,13 +200,10 @@ function cambiarVista(){
   }
 }
 
-/* =========================
-   USUARIO
-========================= */
-
+/* USUARIO */
 function getUser(){
 
-  const doc = docInput.value.trim();
+  const doc = document.getElementById("docInput").value.trim();
   if(!doc) return null;
 
   for(let i = data.length - 1; i >= 0; i--){
@@ -259,13 +215,60 @@ function getUser(){
   return null;
 }
 
-/* =========================
-   INGRESO
-========================= */
+/* BIENVENIDA */
+document.getElementById("docInput").addEventListener("input", function(){
 
+  const doc = this.value.trim();
+  const mensaje = document.getElementById("mensaje");
+
+  if(!doc){
+    mensaje.innerText = "";
+    return;
+  }
+
+  const user = getUser();
+
+  if(user && user.nombre){
+    mensaje.innerText = "Bienvenido nuevamente, " + user.nombre.split(" ")[0] + " 👋";
+  }else{
+    mensaje.innerText = "Bienvenido a nuestras instalaciones 😊";
+  }
+
+});
+
+/* NORMALIZAR ROL */
+function normalizarRol(rol){
+
+  if(!rol) return "";
+
+  const r = rol.toLowerCase();
+
+  if(r.includes("visit")) return "VISITANTE";
+  if(r.includes("contra")) return "CONTRATISTA";
+  if(r.includes("prove")) return "PROVEEDOR";
+
+  return rol;
+}
+
+/* NORMALIZAR DOCUMENTO */
+function normalizarTipoDoc(tipo){
+
+  if(!tipo) return "";
+
+  const t = tipo.toLowerCase();
+
+  if(t.includes("ciudad")) return "Cedula de Ciudadania";
+  if(t.includes("identidad")) return "Tarjeta de Identidad";
+  if(t.includes("extranjer")) return "Cedula de Extranjeria";
+  if(t.includes("pasaporte")) return "Pasaporte";
+
+  return tipo;
+}
+
+/* INGRESO */
 function irIngreso(){
 
-  const doc = docInput.value.trim();
+  const doc = document.getElementById("docInput").value.trim();
   const rol = document.getElementById("rolSelect").value;
   const tipoDoc = document.getElementById("tipoDocInput").value;
 
@@ -281,21 +284,23 @@ function irIngreso(){
   const url =
     form +
     "?usp=pp_url" +
-    "&entry.1086354848=" + encodeURIComponent(rol) +
+    "&entry.1086354848=" + encodeURIComponent(normalizarRol(rol)) +
     "&entry.1899230705=" + encodeURIComponent(user?.nombre || "") +
-    "&entry.2083119061=" + encodeURIComponent(tipoDoc) +
-    "&entry.311902120=" + encodeURIComponent(doc);
+    "&entry.2083119061=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
+    "&entry.311902120=" + encodeURIComponent(doc) +
+    "&entry.477144471=" + encodeURIComponent(user?.contacto || "") +
+    "&entry.1527361506=" + encodeURIComponent(user?.entidad || "") +
+    "&entry.1268448003=" + encodeURIComponent(user?.placa || "") +
+    "&entry.1316902717=" + encodeURIComponent(user?.emergencia || "") +
+    "&entry.539345216=" + encodeURIComponent(user?.parentesco || "");
 
   window.location.href = url;
 }
 
-/* =========================
-   SALIDA
-========================= */
-
+/* SALIDA */
 function irSalida(){
 
-  const doc = docInput.value.trim();
+  const doc = document.getElementById("docInput").value.trim();
   const tipoDoc = document.getElementById("tipoDocInput").value;
 
   if(!doc || !tipoDoc){
@@ -315,9 +320,9 @@ function irSalida(){
   const url =
     form +
     "?usp=pp_url" +
-    "&entry.349719305=" + encodeURIComponent(user.rol) +
+    "&entry.349719305=" + encodeURIComponent(normalizarRol(user.rol)) +
     "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
-    "&entry.861901166=" + encodeURIComponent(tipoDoc) +
+    "&entry.861901166=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
     "&entry.1077137573=" + encodeURIComponent(user.doc || "");
 
   window.location.href = url;
