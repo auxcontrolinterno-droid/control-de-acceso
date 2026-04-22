@@ -92,10 +92,49 @@
       color:#000;
       font-weight:700;
     }
+
+    /* =========================
+       OVERLAY BIENVENIDA
+    ========================= */
+
+    #overlay{
+      position:fixed;
+      top:0;left:0;
+      width:100%;height:100%;
+      background:#0b3d91;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      color:white;
+      font-size:22px;
+      z-index:9999;
+      text-align:center;
+      padding:20px;
+    }
+
+    #overlay input{
+      margin-top:20px;
+      padding:12px;
+      border-radius:10px;
+      border:none;
+      text-align:center;
+      font-size:16px;
+    }
+
   </style>
 </head>
 
 <body>
+
+<!-- 🔵 OVERLAY INICIAL -->
+<div id="overlay">
+  <div id="msgInicio">REGISTRE SU INGRESO / SALIDA</div>
+
+  <input id="docInput" placeholder="Ingrese documento">
+
+  <div id="bienvenida" style="display:none;font-size:26px;font-weight:700;"></div>
+</div>
 
 <div class="header">
   <img src="https://i.imgur.com/OB279U8.jpeg">
@@ -115,7 +154,7 @@
     <option value="PROVEEDOR">PROVEEDOR</option>
   </select>
 
-  <!-- DOCUMENTO + TIPO -->
+  <!-- DOCUMENTO -->
   <div id="zonaCedula" class="hidden">
 
     <select id="tipoDocInput">
@@ -125,8 +164,6 @@
       <option value="Cedula de Extranjeria">Cédula de Extranjería</option>
       <option value="Pasaporte">Pasaporte</option>
     </select>
-
-    <input id="docInput" placeholder="Numero de documento">
 
   </div>
 
@@ -155,6 +192,10 @@
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
 let data = [];
+
+/* =========================
+   CARGA DATOS
+========================= */
 
 async function cargarDatos(){
   try{
@@ -185,7 +226,43 @@ async function cargarDatos(){
 
 window.onload = cargarDatos;
 
-/* VISTA */
+/* =========================
+   OVERLAY LÓGICA
+========================= */
+
+const overlay = document.getElementById("overlay");
+const docInput = document.getElementById("docInput");
+const msgInicio = document.getElementById("msgInicio");
+const bienvenida = document.getElementById("bienvenida");
+
+docInput.addEventListener("input", () => {
+
+  const doc = docInput.value.trim();
+  if(doc.length < 4) return;
+
+  const user = getUser();
+
+  msgInicio.style.display = "none";
+  docInput.style.display = "none";
+
+  bienvenida.style.display = "block";
+
+  if(user && user.nombre){
+    bienvenida.innerText = "BIENVENIDO " + user.nombre.split(" ")[0];
+  }else{
+    bienvenida.innerText = "BIENVENIDO";
+  }
+
+  setTimeout(()=>{
+    overlay.style.display = "none";
+  },2000);
+
+});
+
+/* =========================
+   VISTA
+========================= */
+
 function cambiarVista(){
 
   document.getElementById("zonaCedula").classList.remove("hidden");
@@ -200,10 +277,13 @@ function cambiarVista(){
   }
 }
 
-/* USUARIO */
+/* =========================
+   USUARIO
+========================= */
+
 function getUser(){
 
-  const doc = document.getElementById("docInput").value.trim();
+  const doc = docInput.value.trim();
   if(!doc) return null;
 
   for(let i = data.length - 1; i >= 0; i--){
@@ -215,60 +295,13 @@ function getUser(){
   return null;
 }
 
-/* BIENVENIDA */
-document.getElementById("docInput").addEventListener("input", function(){
+/* =========================
+   INGRESO
+========================= */
 
-  const doc = this.value.trim();
-  const mensaje = document.getElementById("mensaje");
-
-  if(!doc){
-    mensaje.innerText = "";
-    return;
-  }
-
-  const user = getUser();
-
-  if(user && user.nombre){
-    mensaje.innerText = "Bienvenido nuevamente, " + user.nombre.split(" ")[0] + " 👋";
-  }else{
-    mensaje.innerText = "Bienvenido a nuestras instalaciones 😊";
-  }
-
-});
-
-/* NORMALIZAR ROL */
-function normalizarRol(rol){
-
-  if(!rol) return "";
-
-  const r = rol.toLowerCase();
-
-  if(r.includes("visit")) return "VISITANTE";
-  if(r.includes("contra")) return "CONTRATISTA";
-  if(r.includes("prove")) return "PROVEEDOR";
-
-  return rol;
-}
-
-/* NORMALIZAR DOCUMENTO */
-function normalizarTipoDoc(tipo){
-
-  if(!tipo) return "";
-
-  const t = tipo.toLowerCase();
-
-  if(t.includes("ciudad")) return "Cedula de Ciudadania";
-  if(t.includes("identidad")) return "Tarjeta de Identidad";
-  if(t.includes("extranjer")) return "Cedula de Extranjeria";
-  if(t.includes("pasaporte")) return "Pasaporte";
-
-  return tipo;
-}
-
-/* INGRESO */
 function irIngreso(){
 
-  const doc = document.getElementById("docInput").value.trim();
+  const doc = docInput.value.trim();
   const rol = document.getElementById("rolSelect").value;
   const tipoDoc = document.getElementById("tipoDocInput").value;
 
@@ -284,23 +317,21 @@ function irIngreso(){
   const url =
     form +
     "?usp=pp_url" +
-    "&entry.1086354848=" + encodeURIComponent(normalizarRol(rol)) +
+    "&entry.1086354848=" + encodeURIComponent(rol) +
     "&entry.1899230705=" + encodeURIComponent(user?.nombre || "") +
-    "&entry.2083119061=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
-    "&entry.311902120=" + encodeURIComponent(doc) +
-    "&entry.477144471=" + encodeURIComponent(user?.contacto || "") +
-    "&entry.1527361506=" + encodeURIComponent(user?.entidad || "") +
-    "&entry.1268448003=" + encodeURIComponent(user?.placa || "") +
-    "&entry.1316902717=" + encodeURIComponent(user?.emergencia || "") +
-    "&entry.539345216=" + encodeURIComponent(user?.parentesco || "");
+    "&entry.2083119061=" + encodeURIComponent(tipoDoc) +
+    "&entry.311902120=" + encodeURIComponent(doc);
 
   window.location.href = url;
 }
 
-/* SALIDA */
+/* =========================
+   SALIDA (AUTO ENVÍO)
+========================= */
+
 function irSalida(){
 
-  const doc = document.getElementById("docInput").value.trim();
+  const doc = docInput.value.trim();
   const tipoDoc = document.getElementById("tipoDocInput").value;
 
   if(!doc || !tipoDoc){
@@ -320,9 +351,9 @@ function irSalida(){
   const url =
     form +
     "?usp=pp_url" +
-    "&entry.349719305=" + encodeURIComponent(normalizarRol(user.rol)) +
+    "&entry.349719305=" + encodeURIComponent(user.rol) +
     "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
-    "&entry.861901166=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
+    "&entry.861901166=" + encodeURIComponent(tipoDoc) +
     "&entry.1077137573=" + encodeURIComponent(user.doc || "");
 
   window.location.href = url;
