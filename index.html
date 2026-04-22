@@ -115,21 +115,21 @@
     <option value="PROVEEDOR">Proveedor</option>
   </select>
 
-  <!-- DOCUMENTO + TIPO -->
+  <!-- TIPO + DOCUMENTO -->
   <div id="zonaCedula" class="hidden">
 
-    <input id="docInput" placeholder="Número de documento">
-
+    <!-- 🔥 PRIMERO TIPO DE DOCUMENTO -->
     <select id="tipoDocInput">
       <option value="">Tipo de documento</option>
-      <option value="Cedula de Ciudadania">Cedula de Ciudadania</option>
+      <option value="Cedula de Ciudadania">Cédula de Ciudadanía</option>
       <option value="Tarjeta de Identidad">Tarjeta de Identidad</option>
-      <option value="Cedula de Extranjeria">Cedula de Extranjeria</option>
+      <option value="Cedula de Extranjeria">Cédula de Extranjería</option>
       <option value="Pasaporte">Pasaporte</option>
     </select>
 
-    <!-- 🔥 TIPO DE DOCUMENTO (AHORA CORRECTO Y DESPUÉS DEL ROL) -->
-    
+    <!-- 🔥 DESPUÉS DOCUMENTO -->
+    <input id="docInput" placeholder="Numero de documento">
+
   </div>
 
   <!-- BOTONES -->
@@ -187,7 +187,7 @@ async function cargarDatos(){
 
 window.onload = cargarDatos;
 
-/* VISTA */
+/* CAMBIO DE VISTA */
 function cambiarVista(){
 
   const rol = document.getElementById("rolSelect").value;
@@ -202,7 +202,7 @@ function cambiarVista(){
   }
 }
 
-/* USUARIO */
+/* USUARIO (último registro) */
 function getUser(){
 
   const doc = document.getElementById("docInput").value.trim();
@@ -215,20 +215,6 @@ function getUser(){
   }
 
   return null;
-}
-
-/* NORMALIZAR TIPO DOCUMENTO */
-function normalizarTipo(tipo){
-
-  if(!tipo) return "";
-
-  if(tipo.includes("Cédula")) return tipo;
-  if(tipo.toLowerCase().includes("ciudadania")) return "Cédula de Ciudadanía";
-  if(tipo.toLowerCase().includes("identidad")) return "Tarjeta de Identidad";
-  if(tipo.toLowerCase().includes("extranjeria")) return "Cédula de Extranjería";
-  if(tipo.toLowerCase().includes("pasaporte")) return "Pasaporte";
-
-  return tipo;
 }
 
 /* BIENVENIDA */
@@ -251,6 +237,21 @@ document.getElementById("docInput").addEventListener("input", function(){
   }
 
 });
+
+/* NORMALIZAR TIPO DOC */
+function normalizarTipoDoc(tipo){
+
+  if(!tipo) return "";
+
+  const t = tipo.toLowerCase();
+
+  if(t.includes("ciudad")) return "Cedula de Ciudadania";
+  if(t.includes("identidad")) return "Tarjeta de Identidad";
+  if(t.includes("extranjer")) return "Cedula de Extranjeria";
+  if(t.includes("pasaporte")) return "Pasaporte";
+
+  return tipo;
+}
 
 /* INGRESO */
 function irIngreso(){
@@ -278,32 +279,12 @@ function irIngreso(){
 
   const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
-  if(!user){
-
-    const url =
-      form +
-      "?usp=pp_url" +
-      "&entry.1086354848=" + encodeURIComponent(rol) +
-      "&entry.2083119061=" + encodeURIComponent(normalizarTipo(tipoDoc)) +
-      "&entry.311902120=" + encodeURIComponent(doc);
-
-    window.location.href = url;
-    return;
-  }
-
   const url =
     form +
     "?usp=pp_url" +
     "&entry.1086354848=" + encodeURIComponent(rol) +
-    "&entry.1899230705=" + encodeURIComponent(user.nombre) +
-    "&entry.2083119061=" + encodeURIComponent(normalizarTipo(tipoDoc)) +
-    "&entry.311902120=" + encodeURIComponent(user.doc) +
-    "&entry.477144471=" + encodeURIComponent(user.contacto) +
-    "&entry.1527361506=" + encodeURIComponent(user.entidad) +
-    "&entry.1268448003=" + encodeURIComponent(user.placa) +
-    "&entry.1316902717=" + encodeURIComponent(user.emergencia) +
-    "&entry.539345216=" + encodeURIComponent(user.parentesco) +
-    "&entry.1651701540=" + encodeURIComponent(user.rol);
+    "&entry.2083119061=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
+    "&entry.311902120=" + encodeURIComponent(doc);
 
   window.location.href = url;
 }
@@ -340,13 +321,8 @@ function irSalida(){
     "?usp=pp_url" +
     "&entry.349719305=" + encodeURIComponent(rolFinal) +
     "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
-    "&entry.861901166=" + encodeURIComponent(normalizarTipo(tipoDoc)) +
-    "&entry.1077137573=" + encodeURIComponent(user.doc || "") +
-    "&entry.477144471=" + encodeURIComponent(user.contacto || "") +
-    "&entry.1527361506=" + encodeURIComponent(user.entidad || "") +
-    "&entry.1268448003=" + encodeURIComponent(user.placa || "") +
-    "&entry.1316902717=" + encodeURIComponent(user.emergencia || "") +
-    "&entry.539345216=" + encodeURIComponent(user.parentesco || "");
+    "&entry.861901166=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
+    "&entry.1077137573=" + encodeURIComponent(user.doc || "");
 
   window.location.href = url;
 }
