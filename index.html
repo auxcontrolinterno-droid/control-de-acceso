@@ -115,10 +115,9 @@
     <option value="PROVEEDOR">Proveedor</option>
   </select>
 
-  <!-- TIPO + DOCUMENTO -->
+  <!-- DOCUMENTO + TIPO -->
   <div id="zonaCedula" class="hidden">
 
-    <!-- 🔥 PRIMERO TIPO DE DOCUMENTO -->
     <select id="tipoDocInput">
       <option value="">Tipo de documento</option>
       <option value="Cedula de Ciudadania">Cédula de Ciudadanía</option>
@@ -127,7 +126,6 @@
       <option value="Pasaporte">Pasaporte</option>
     </select>
 
-    <!-- 🔥 DESPUÉS DOCUMENTO -->
     <input id="docInput" placeholder="Numero de documento">
 
   </div>
@@ -187,13 +185,13 @@ async function cargarDatos(){
 
 window.onload = cargarDatos;
 
-/* CAMBIO DE VISTA */
+/* VISTA */
 function cambiarVista(){
-
-  const rol = document.getElementById("rolSelect").value;
 
   document.getElementById("zonaCedula").classList.remove("hidden");
   document.getElementById("zonaIngreso").classList.remove("hidden");
+
+  const rol = document.getElementById("rolSelect").value;
 
   if(rol === "CONTRATISTA" || rol === "PROVEEDOR"){
     document.getElementById("zonaSalida").classList.remove("hidden");
@@ -202,7 +200,7 @@ function cambiarVista(){
   }
 }
 
-/* USUARIO (último registro) */
+/* USUARIO */
 function getUser(){
 
   const doc = document.getElementById("docInput").value.trim();
@@ -238,7 +236,21 @@ document.getElementById("docInput").addEventListener("input", function(){
 
 });
 
-/* NORMALIZAR TIPO DOC */
+/* NORMALIZAR ROL */
+function normalizarRol(rol){
+
+  if(!rol) return "";
+
+  const r = rol.toLowerCase();
+
+  if(r.includes("visit")) return "Visitante";
+  if(r.includes("contra")) return "Contratista";
+  if(r.includes("prove")) return "Proveedor";
+
+  return rol;
+}
+
+/* NORMALIZAR DOCUMENTO */
 function normalizarTipoDoc(tipo){
 
   if(!tipo) return "";
@@ -260,64 +272,39 @@ function irIngreso(){
   const rol = document.getElementById("rolSelect").value;
   const tipoDoc = document.getElementById("tipoDocInput").value;
 
-  if(!doc){
-    alert("Ingrese documento");
-    return;
-  }
-
-  if(!rol){
-    alert("Seleccione rol");
-    return;
-  }
-
-  if(!tipoDoc){
-    alert("Seleccione tipo de documento");
+  if(!doc || !rol || !tipoDoc){
+    alert("Complete todos los campos");
     return;
   }
 
   const user = getUser();
 
-  const form =
-  "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
-
-  const nombre = user?.nombre || "";
-  const contacto = user?.contacto || "";
-  const entidad = user?.entidad || "";
-  const placa = user?.placa || "";
-  const emergencia = user?.emergencia || "";
-  const parentesco = user?.parentesco || "";
-  const rolBase = user?.rol || rol;
+  const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
   const url =
     form +
     "?usp=pp_url" +
-
-    "&entry.1086354848=" + encodeURIComponent(rolBase) +
-    "&entry.1899230705=" + encodeURIComponent(nombre) +
+    "&entry.1086354848=" + encodeURIComponent(normalizarRol(rol)) +
+    "&entry.1899230705=" + encodeURIComponent(user?.nombre || "") +
     "&entry.2083119061=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
     "&entry.311902120=" + encodeURIComponent(doc) +
-    "&entry.477144471=" + encodeURIComponent(contacto) +
-    "&entry.1527361506=" + encodeURIComponent(entidad) +
-    "&entry.1268448003=" + encodeURIComponent(placa) +
-    "&entry.1316902717=" + encodeURIComponent(emergencia) +
-    "&entry.539345216=" + encodeURIComponent(parentesco) +
-    "&entry.1651701540=" + encodeURIComponent(rolBase);
+    "&entry.477144471=" + encodeURIComponent(user?.contacto || "") +
+    "&entry.1527361506=" + encodeURIComponent(user?.entidad || "") +
+    "&entry.1268448003=" + encodeURIComponent(user?.placa || "") +
+    "&entry.1316902717=" + encodeURIComponent(user?.emergencia || "") +
+    "&entry.539345216=" + encodeURIComponent(user?.parentesco || "");
 
   window.location.href = url;
 }
+
 /* SALIDA */
 function irSalida(){
 
   const doc = document.getElementById("docInput").value.trim();
   const tipoDoc = document.getElementById("tipoDocInput").value;
 
-  if(!doc){
-    alert("Ingrese documento");
-    return;
-  }
-
-  if(!tipoDoc){
-    alert("Seleccione tipo de documento");
+  if(!doc || !tipoDoc){
+    alert("Complete los campos");
     return;
   }
 
@@ -328,14 +315,12 @@ function irSalida(){
     return;
   }
 
-  const rolFinal = (user.rol || "VISITANTE").toUpperCase();
-
   const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
 
   const url =
     form +
     "?usp=pp_url" +
-    "&entry.349719305=" + encodeURIComponent(rolFinal) +
+    "&entry.349719305=" + encodeURIComponent(normalizarRol(user.rol)) +
     "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
     "&entry.861901166=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
     "&entry.1077137573=" + encodeURIComponent(user.doc || "");
