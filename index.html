@@ -300,10 +300,13 @@ function irIngreso(){
 }
 
 /* SALIDA */
+<script>
+/* SALIDA */
 function irSalida(){
 
   const doc = document.getElementById("docInput").value.trim();
   const tipoDoc = document.getElementById("tipoDocInput").value;
+  const mensaje = document.getElementById("mensaje");
 
   if(!doc || !tipoDoc){
     alert("Complete los campos");
@@ -316,7 +319,6 @@ function irSalida(){
     alert("Usuario no encontrado");
     return;
   }
- 
 
   const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
 
@@ -328,9 +330,22 @@ function irSalida(){
     "&entry.861901166=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
     "&entry.1077137573=" + encodeURIComponent(user.doc || "");
 
-  window.location.href = url;
-}
+  /* Envío oculto sin salir de la página */
+  fetch(url, {
+    method: "POST",
+    mode: "no-cors"
+  }).then(() => {
 
+    mensaje.innerText = "Se registró exitosamente su salida ✅";
+
+    document.getElementById("docInput").value = "";
+    document.getElementById("tipoDocInput").value = "";
+
+  }).catch(() => {
+    mensaje.innerText = "Salida enviada ✅";
+  });
+}
+</script>
 </script>
 
 </body>
