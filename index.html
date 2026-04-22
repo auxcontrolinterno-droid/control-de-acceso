@@ -249,7 +249,6 @@ location.reload();
 
 }
 
-/* SALIDA CORREGIDA */
 function irSalida(){
 
 const doc = document.getElementById("docInput").value.trim();
@@ -264,6 +263,15 @@ const user = getUser();
 if(!user){
 alert("Usuario no encontrado");
 return;
+}
+
+// 👇 Confirmación manual antes de enviar
+const confirmar = confirm(
+"¿Confirmas registrar la SALIDA de " + user.nombre + "?"
+);
+
+if(!confirmar){
+return; // ❌ no envía nada
 }
 
 const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
@@ -290,7 +298,6 @@ location.reload();
 });
 
 }
-
 </script>
 
 </body>
