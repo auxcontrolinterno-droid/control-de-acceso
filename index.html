@@ -69,15 +69,12 @@
       font-size:15px;
       margin-bottom:12px;
       cursor:pointer;
-      font-family:'Inter',sans-serif;
     }
 
     .ingreso{ background:#0b3d91; }
     .salida{ background:#c62828; }
 
-    .hidden{
-      display:none;
-    }
+    .hidden{ display:none; }
 
     .footer{
       font-size:11px;
@@ -109,14 +106,15 @@
 
   <div class="mensaje" id="mensaje"></div>
 
-  <!-- PRIMERO ROL -->
+  <!-- ROL -->
   <select id="rolSelect" onchange="cambiarVista()">
     <option value="">Defina su rol</option>
     <option value="VISITANTE">Visitante</option>
     <option value="CONTRATISTA">Contratista</option>
+    <option value="PROVEEDOR">Proveedor</option>
   </select>
 
-  <!-- LUEGO CEDULA -->
+  <!-- CÉDULA -->
   <div id="zonaCedula" class="hidden">
     <input id="docInput" placeholder="Número de documento">
   </div>
@@ -176,9 +174,8 @@ async function cargarDatos(){
 
 window.onload = cargarDatos;
 
-/* CAMBIAR VISTA SEGUN ROL */
+/* VISTA */
 function cambiarVista(){
-
   const rol = document.getElementById("rolSelect").value;
 
   document.getElementById("zonaCedula").classList.remove("hidden");
@@ -191,7 +188,7 @@ function cambiarVista(){
   }
 }
 
-/* BUSCAR USUARIO */
+/* BUSCAR */
 function getUser(){
   const doc = document.getElementById("docInput").value.trim();
   if(!doc) return null;
@@ -226,13 +223,8 @@ function irIngreso(){
   const doc = document.getElementById("docInput").value.trim();
   const rol = document.getElementById("rolSelect").value;
 
-  if(!doc){
-    alert("Ingrese documento");
-    return;
-  }
-
-  if(!rol){
-    alert("Seleccione rol");
+  if(!doc || !rol){
+    alert("Complete los datos");
     return;
   }
 
@@ -241,32 +233,21 @@ function irIngreso(){
   const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
 
   if(!user){
-
-    const url =
+    window.location.href =
       form +
       "?usp=pp_url" +
       "&entry.1086354848=" + encodeURIComponent(rol) +
       "&entry.311902120=" + encodeURIComponent(doc);
-
-    window.location.href = url;
     return;
   }
 
-  const url =
+  window.location.href =
     form +
     "?usp=pp_url" +
     "&entry.1086354848=" + encodeURIComponent(rol) +
     "&entry.1899230705=" + encodeURIComponent(user.nombre) +
     "&entry.2083119061=" + encodeURIComponent(user.tipo) +
-    "&entry.311902120=" + encodeURIComponent(user.doc) +
-    "&entry.477144471=" + encodeURIComponent(user.contacto) +
-    "&entry.1527361506=" + encodeURIComponent(user.entidad) +
-    "&entry.1268448003=" + encodeURIComponent(user.placa) +
-    "&entry.1316902717=" + encodeURIComponent(user.emergencia) +
-    "&entry.539345216=" + encodeURIComponent(user.parentesco) +
-    "&entry.1651701540=" + encodeURIComponent(user.rol);
-
-  window.location.href = url;
+    "&entry.311902120=" + encodeURIComponent(user.doc);
 }
 
 /* SALIDA */
@@ -286,23 +267,18 @@ function irSalida(){
     return;
   }
 
-  // 🔥 ROL REAL
-  const rolFinal = (user.rol || "VISITANTE").toUpperCase();
+  // 🔥 TOMAR EL REGISTRO MÁS RECIENTE DEL MISMO DOCUMENTO
+  const historial = [...data].reverse().find(u => String(u.doc).trim() === doc) || user;
+
+  const rolFinal = (historial.rol || "VISITANTE").toUpperCase();
 
   const url =
   "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse?" +
 
-  // 🔥 1. ROL (PRIMERA PREGUNTA)
   "entry.349719305=" + encodeURIComponent(rolFinal) +
-
-  // 🔥 2. NOMBRE
-  "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
-
-  // 🔥 3. TIPO DOCUMENTO
-  "&entry.861901166=" + encodeURIComponent(user.tipo || "") +
-
-  // 🔥 4. DOCUMENTO
-  "&entry.1077137573=" + encodeURIComponent(user.doc || "");
+  "&entry.232043619=" + encodeURIComponent(historial.nombre || "") +
+  "&entry.861901166=" + encodeURIComponent(historial.tipo || "") +
+  "&entry.1077137573=" + encodeURIComponent(historial.doc || "");
 
   fetch(url, { mode: "no-cors" });
 
@@ -310,10 +286,9 @@ function irSalida(){
     "Salida registrada correctamente ✔";
 
   document.getElementById("docInput").value = "";
-
 }
 
 </script>
 
 </body>
-</html> 
+</html>
