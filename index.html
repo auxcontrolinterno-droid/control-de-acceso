@@ -188,28 +188,40 @@ document.getElementById("mensaje").innerText = "Ingreso registrado ✔";
 
 function irSalida(){
 
-const doc = document.getElementById("docInput").value.trim();
-if(!doc){alert("Ingrese documento");return;}
+  const doc = document.getElementById("docInput").value.trim();
 
-const user = getUser();
-if(!user){alert("Usuario no encontrado");return;}
+  if(!doc){
+    alert("Ingrese documento");
+    return;
+  }
 
-const rolFinal = document.getElementById("rolSelect").value.trim().toUpperCase();
-const form =
-"https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
+  const user = getUser();
 
-const url =
-form +
-"?entry.349719305=" + encodeURIComponent(rolFinal) +
-"&entry.232043619=" + encodeURIComponent(user[3]) +
-"&entry.861901166=" + encodeURIComponent(user[4]) +
-"&entry.1077137573=" + encodeURIComponent(user[2]);
+  if(!user){
+    alert("Usuario no encontrado");
+    return;
+  }
 
-fetch(url,{mode:"no-cors"});
+  const rolFinal = document.getElementById("rolSelect").value.trim().toUpperCase();
 
-document.getElementById("mensaje").innerText = "Salida registrada ✔";
+  const url =
+  "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse" +
 
-document.getElementById("docInput").value = "";
+  "?entry.349719305=" + encodeURIComponent(rolFinal) +
+  "&entry.232043619=" + encodeURIComponent(user[3]) +
+  "&entry.861901166=" + encodeURIComponent(user[4]) +
+  "&entry.1077137573=" + encodeURIComponent(user[2]);
+
+  // 🔥 ENVÍO SEGURO
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = url;
+  document.body.appendChild(iframe);
+
+  document.getElementById("mensaje").innerText =
+    "Salida registrada ✔";
+
+  document.getElementById("docInput").value = "";
 
 }
 
