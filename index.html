@@ -256,7 +256,6 @@ function irIngreso(){
 function irSalida(){
 
   const doc = document.getElementById("docInput").value.trim();
-  const rol = document.getElementById("rolSelect").value;
 
   if(!doc){
     alert("Ingrese documento");
@@ -265,34 +264,31 @@ function irSalida(){
 
   const user = getUser();
 
+  if(!user){
+    alert("Usuario no encontrado");
+    return;
+  }
+
   const url =
-    "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
+  "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse?" +
+  "entry.861901166=" + encodeURIComponent(user.tipo) +
+  "&entry.1077137573=" + encodeURIComponent(user.doc) +
+  "&entry.232043619=" + encodeURIComponent(user.nombre) +
+  "&entry.666367411=" + encodeURIComponent(user.contacto) +
+  "&entry.2097525574=" + encodeURIComponent(user.rol) +
+  "&entry.2053464900=" + encodeURIComponent(user.entidad) +
+  "&entry.335364680=" + encodeURIComponent(user.placa) +
+  "&entry.1230591168=" + encodeURIComponent(user.emergencia) +
+  "&entry.620468493=" + encodeURIComponent(user.parentesco);
 
-  const params = new URLSearchParams();
-
-  // 1. Nombre
-  params.append("entry.232043619", user ? user.nombre : "");
-
-  // 2. Documento
-  params.append("entry.861901166", doc);
-
-  // 3. Tipo
-  params.append("entry.1077137573", user ? user.tipo : "");
-
-  // 4. Rol
-  params.append("entry.349719305", rol);
-
-  fetch(url, {
-    method: "POST",
-    mode: "no-cors",
-    body: params
-  })
+  fetch(url,{mode:"no-cors"})
   .then(()=>{
-    alert("Salida registrada correctamente");
-    location.reload();
+      alert("Salida registrada correctamente");
+      location.reload();
   });
 
 }
+
 </script>
 
 </body>
