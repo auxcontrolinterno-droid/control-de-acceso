@@ -316,47 +316,9 @@ function irSalida(){
     alert("Usuario no encontrado");
     return;
   }
-  async function irSalida(){
+ 
 
-  const doc = document.getElementById("docInput").value.trim();
-  const tipoDoc = document.getElementById("tipoDocInput").value;
-
-  if(!doc || !tipoDoc){
-    alert("Complete los campos");
-    return;
-  }
-
-  const user = getUser();
-
-  if(!user){
-    alert("Usuario no encontrado");
-    return;
-  }
-
-  const payload = {
-    rol: user.rol,
-    nombre: user.nombre,
-    tipoDoc: tipoDoc,
-    doc: user.doc
-  };
-
-  try{
-
-    await fetch("https://script.google.com/macros/s/AKfycby85sS5KDcft0wkf82n_jr3RPRMDRNR7-RRd3vb6ouF/dev", {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
-
-    alert("Salida registrada correctamente ✔");
-
-  }catch(e){
-    console.log(e);
-    alert("Error registrando salida");
-  }
-
-}
-
-  const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/viewform";
+  const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
 
   const url =
     form +
