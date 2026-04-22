@@ -277,18 +277,34 @@ function irIngreso(){
 
   const user = getUser();
 
-  const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
+  const form =
+  "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
+
+  const nombre = user?.nombre || "";
+  const contacto = user?.contacto || "";
+  const entidad = user?.entidad || "";
+  const placa = user?.placa || "";
+  const emergencia = user?.emergencia || "";
+  const parentesco = user?.parentesco || "";
+  const rolBase = user?.rol || rol;
 
   const url =
     form +
     "?usp=pp_url" +
-    "&entry.1086354848=" + encodeURIComponent(rol) +
+
+    "&entry.1086354848=" + encodeURIComponent(rolBase) +
+    "&entry.1899230705=" + encodeURIComponent(nombre) +
     "&entry.2083119061=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
-    "&entry.311902120=" + encodeURIComponent(doc);
+    "&entry.311902120=" + encodeURIComponent(doc) +
+    "&entry.477144471=" + encodeURIComponent(contacto) +
+    "&entry.1527361506=" + encodeURIComponent(entidad) +
+    "&entry.1268448003=" + encodeURIComponent(placa) +
+    "&entry.1316902717=" + encodeURIComponent(emergencia) +
+    "&entry.539345216=" + encodeURIComponent(parentesco) +
+    "&entry.1651701540=" + encodeURIComponent(rolBase);
 
   window.location.href = url;
 }
-
 /* SALIDA */
 function irSalida(){
 
