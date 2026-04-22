@@ -286,24 +286,23 @@ function irSalida(){
     return;
   }
 
-  // 🔥 Detectar rol correctamente
-  const rolFinal = (user.rol || user.tipo || "VISITANTE").toUpperCase();
+  // 🔥 ROL REAL
+  const rolFinal = (user.rol || "VISITANTE").toUpperCase();
 
   const url =
   "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse?" +
 
-  // 🔥 AQUÍ VA EL ROL (PRIMERA PREGUNTA)
+  // 🔥 1. ROL (PRIMERA PREGUNTA)
   "entry.349719305=" + encodeURIComponent(rolFinal) +
 
-  // resto de datos
-  "&entry.232043619=" + encodeURIComponent(user.nombre) +
+  // 🔥 2. NOMBRE
+  "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
+
+  // 🔥 3. TIPO DOCUMENTO
   "&entry.861901166=" + encodeURIComponent(user.tipo || "") +
-  "&entry.1077137573=" + encodeURIComponent(user.doc) +
-  "&entry.666367411=" + encodeURIComponent(user.contacto || "") +
-  "&entry.2053464900=" + encodeURIComponent(user.entidad || "") +
-  "&entry.335364680=" + encodeURIComponent(user.placa || "") +
-  "&entry.1230591168=" + encodeURIComponent(user.emergencia || "") +
-  "&entry.620468493=" + encodeURIComponent(user.parentesco || "");
+
+  // 🔥 4. DOCUMENTO
+  "&entry.1077137573=" + encodeURIComponent(user.doc || "");
 
   fetch(url, { mode: "no-cors" });
 
@@ -313,7 +312,6 @@ function irSalida(){
   document.getElementById("docInput").value = "";
 
 }
-
 </script>
 
 </body>
