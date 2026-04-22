@@ -270,7 +270,8 @@ function irSalida(){
 
   const url =
     form +
-    "?entry.232043619=" + encodeURIComponent(user ? user.nombre : "") +
+    "?usp=pp_url" +
+    "&entry.232043619=" + encodeURIComponent(user ? user.nombre : "") +
     "&entry.1077137573=" + encodeURIComponent(user ? user.tipo : "") +
     "&entry.861901166=" + encodeURIComponent(doc) +
     "&entry.349719305=" + encodeURIComponent(rol);
