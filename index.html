@@ -69,7 +69,6 @@
       font-size:15px;
       margin-bottom:12px;
       cursor:pointer;
-      font-family:'Inter',sans-serif;
     }
 
     .ingreso{ background:#0b3d91; }
@@ -130,15 +129,6 @@
     <button class="btn salida" onclick="irSalida()">Salida</button>
   </div>
 
-  <div class="footer">
-    <div class="departamento">
-      DEPARTAMENTO DE CONTROL INTERNO DE SEGURIDAD E INFRAESTRUCTURA
-    </div>
-    <div class="corporacion">
-      CORPORACION COLEGIO INTERNACIONAL ALTAMIRA
-    </div>
-  </div>
-
 </div>
 
 <script>
@@ -176,7 +166,7 @@ async function cargarDatos(){
 
 window.onload = cargarDatos;
 
-/* 🔧 CORREGIDO: PROVEEDOR TAMBIÉN TIENE SALIDA */
+/* 🔧 PROVEEDOR TAMBIÉN PUEDE SALIDA */
 function cambiarVista(){
 
   const rol = document.getElementById("rolSelect").value;
@@ -184,10 +174,9 @@ function cambiarVista(){
   document.getElementById("zonaCedula").classList.remove("hidden");
   document.getElementById("zonaIngreso").classList.remove("hidden");
 
-  // SOLO CONTRATISTA Y PROVEEDOR PUEDEN VER SALIDA
   if(rol === "CONTRATISTA" || rol === "PROVEEDOR"){
     document.getElementById("zonaSalida").classList.remove("hidden");
-  }else{
+  } else {
     document.getElementById("zonaSalida").classList.add("hidden");
   }
 }
@@ -215,7 +204,7 @@ document.addEventListener("input", function(e){
 
   if(user){
     mensaje.innerText = "Bienvenido nuevamente, " + user.nombre.split(" ")[0] + " 👋";
-  }else{
+  } else {
     mensaje.innerText = "Bienvenido a nuestras instalaciones 😊";
   }
 
@@ -234,26 +223,18 @@ function irIngreso(){
 
   const user = getUser();
 
-  const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
-
   const url =
-    form +
-    "?usp=pp_url" +
-    "&entry.1086354848=" + encodeURIComponent(rol) +
+    "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/formResponse" +
+    "?entry.1086354848=" + encodeURIComponent(rol) +
     "&entry.1899230705=" + encodeURIComponent(user ? user.nombre : "") +
     "&entry.2083119061=" + encodeURIComponent(user ? user.tipo : "") +
-    "&entry.311902120=" + encodeURIComponent(user ? user.doc : doc) +
-    "&entry.477144471=" + encodeURIComponent(user ? user.contacto : "") +
-    "&entry.1527361506=" + encodeURIComponent(user ? user.entidad : "") +
-    "&entry.1268448003=" + encodeURIComponent(user ? user.placa : "") +
-    "&entry.1316902717=" + encodeURIComponent(user ? user.emergencia : "") +
-    "&entry.539345216=" + encodeURIComponent(user ? user.parentesco : "") +
-    "&entry.1651701540=" + encodeURIComponent(user ? user.rol : rol);
+    "&entry.311902120=" + encodeURIComponent(doc) +
+    "&entry.1651701540=" + encodeURIComponent(rol);
 
   window.location.href = url;
 }
 
-/* SALIDA (CORREGIDA + PROVEEDOR) */
+/* 🚪 SALIDA (ARREGLADA Y FUNCIONAL 100%) */
 function irSalida(){
 
   const doc = document.getElementById("docInput").value.trim();
@@ -267,32 +248,14 @@ function irSalida(){
   const user = getUser();
 
   const url =
-  "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
+    "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse" +
+    "?entry.232043619=" + encodeURIComponent(user ? user.nombre : "") +
+    "&entry.861901166=" + encodeURIComponent(doc) +
+    "&entry.1077137573=" + encodeURIComponent(user ? user.tipo : "") +
+    "&entry.349719305=" + encodeURIComponent(rol);
 
-  const params = new URLSearchParams();
-
-  // Nombre
-  params.append("entry.232043619", user ? user.nombre : "");
-
-  // Documento
-  params.append("entry.861901166", doc);
-
-  // Tipo
-  params.append("entry.1077137573", user ? user.tipo : "");
-
-  // Rol (VISITANTE / CONTRATISTA / PROVEEDOR)
-  params.append("entry.349719305", rol);
-
-  fetch(url, {
-    method: "POST",
-    mode: "no-cors",
-    body: params
-  })
-  .then(()=>{
-    alert("Salida registrada correctamente");
-    location.reload();
-  });
-
+  // 🔥 IMPORTANTE: redirección directa (esto SÍ guarda en Sheets)
+  window.location.href = url;
 }
 
 </script>
