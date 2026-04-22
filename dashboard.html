@@ -130,6 +130,12 @@ background:#f8fafc;
 padding:14px;
 border-radius:14px;
 font-size:14px;
+transition:.2s;
+}
+
+.item:hover{
+transform:scale(1.02);
+background:#eef5ff;
 }
 
 .footer{
@@ -172,8 +178,18 @@ color:#666;
 </div>
 
 <div class="card">
+<small>Estado Sistema</small>
+<h2 id="estado">🟡 Cargando</h2>
+</div>
+
+<div class="card">
 <small>Hora Actual</small>
-<h2 id="hora" style="font-size:24px;">--:--</h2>
+<h2 id="hora" style="font-size:20px;">--:--</h2>
+</div>
+
+<div class="card">
+<small>Última Actualización</small>
+<h2 id="actualizado" style="font-size:18px;">--</h2>
 </div>
 
 </div>
@@ -217,9 +233,7 @@ const URL_INGRESOS =
 const URL_SALIDAS =
 "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
 
-
 async function leerSheet(url){
-
 const res = await fetch(url);
 const txt = await res.text();
 const json = JSON.parse(txt.substring(47).slice(0,-2));
@@ -227,79 +241,56 @@ const json = JSON.parse(txt.substring(47).slice(0,-2));
 return json.table.rows.map(r =>
 (r.c || []).map(x => x ? x.v : "")
 );
-
 }
 
-/* CONVERTIR FECHA GOOGLE */
-function convertirFecha(valor){
-
-if(!valor) return null;
-
-if(typeof valor === "string" && valor.includes("Date(")){
-
-const nums = valor.match(/\d+/g).map(Number);
-
-return new Date(
-nums[0],
-nums[1],
-nums[2],
-nums[3] || 0,
-nums[4] || 0,
-nums[5] || 0
-);
-
+function convertirFecha(v){
+if(!v) return null;
+if(typeof v==="string" && v.includes("Date(")){
+const n=v.match(/\d+/g).map(Number);
+return new Date(n[0],n[1],n[2],n[3]||0,n[4]||0,n[5]||0);
+}
+return new Date(v);
 }
 
-return new Date(valor);
-
+function esHoy(v){
+const f=convertirFecha(v);
+if(!f) return false;
+const h=new Date();
+return f.getDate()===h.getDate() &&
+f.getMonth()===h.getMonth() &&
+f.getFullYear()===h.getFullYear();
 }
 
-/* SOLO FILA DE HOY */
-function esHoy(valor){
-
-const fecha = convertirFecha(valor);
-if(!fecha) return false;
-
-const hoy = new Date();
-
-return fecha.getDate() === hoy.getDate() &&
-       fecha.getMonth() === hoy.getMonth() &&
-       fecha.getFullYear() === hoy.getFullYear();
-
-}
-
-/* HORA LIMPIA */
-function horaBonita(valor){
-
-const fecha = convertirFecha(valor);
-if(!fecha) return "--";
-
-return fecha.toLocaleTimeString([],{
-hour:'2-digit',
-minute:'2-digit'
-});
-
+function hora(v){
+const f=convertirFecha(v);
+if(!f) return "--";
+return f.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
 }
 
 async function cargarDashboard(){
 
 try{
 
-let ingresos = await leerSheet(URL_INGRESOS);
-let salidas  = await leerSheet(URL_SALIDAS);
+document.getElementById("estado").innerText="🟢 Online";
 
-/* SOLO HOY */
-ingresos = ingresos.filter(f => esHoy(f[0]));
-salidas  = salidas.filter(f => esHoy(f[0]));
+let ingresos=await leerSheet(URL_INGRESOS);
+let salidas=await leerSheet(URL_SALIDAS);
 
-document.getElementById("ingresos").innerText = ingresos.length;
-document.getElementById("salidas").innerText = salidas.length;
+ingresos=ingresos.filter(f=>esHoy(f[0]));
+salidas=salidas.filter(f=>esHoy(f[0]));
+
+document.getElementById("ingresos").innerText=ingresos.length;
+document.getElementById("salidas").innerText=salidas.length;
+
+document.getElementById("actualizado").innerText=
+new Date().toLocaleTimeString();
 
 ultimosMovimientos(ingresos,salidas);
-contratistasDentro(ingresos,salidas);
+contratistas(ingresos,salidas);
 reloj();
 
 }catch(e){
+document.getElementById("estado").innerText="🔴 Error";
 console.log(e);
 }
 
@@ -307,113 +298,64 @@ console.log(e);
 
 function ultimosMovimientos(ingresos,salidas){
 
-let movimientos = [];
+let mov=[];
 
 ingresos.forEach(f=>{
-
-movimientos.push({
-hora:f[0],
-nombre:f[3],
-rol:f[4],
-tipo:"Ingreso"
-});
-
+mov.push({h:f[0],n:f[3],r:f[4],t:"Ingreso"});
 });
 
 salidas.forEach(f=>{
-
-movimientos.push({
-hora:f[0],
-nombre:f[3],
-rol:f[5],
-tipo:"Salida"
+mov.push({h:f[0],n:f[3],r:f[5],t:"Salida"});
 });
 
-});
+mov.sort((a,b)=>convertirFecha(b.h)-convertirFecha(a.h));
+mov=mov.slice(0,10);
 
-movimientos.sort((a,b)=>
-convertirFecha(b.hora)-convertirFecha(a.hora)
-);
-
-movimientos = movimientos.slice(0,10);
-
-let html = "";
-
-movimientos.forEach(m=>{
-
-html += `
+document.getElementById("tabla").innerHTML=
+mov.map(m=>`
 <tr>
-<td>${horaBonita(m.hora)}</td>
-<td>${m.nombre || "-"}</td>
-<td>${m.rol || "-"}</td>
-<td>
-${m.tipo=="Ingreso"
-? '<span class="badge-in">Ingreso</span>'
-: '<span class="badge-out">Salida</span>'}
-</td>
+<td>${hora(m.h)}</td>
+<td>${m.n||"-"}</td>
+<td>${m.r||"-"}</td>
+<td>${m.t==="Ingreso"
+?'<span class="badge-in">Ingreso</span>'
+:'<span class="badge-out">Salida</span>'}</td>
 </tr>
-`;
-
-});
-
-document.getElementById("tabla").innerHTML = html;
-
+`).join("");
 }
 
-function contratistasDentro(ingresos,salidas){
+function contratistas(ingresos,salidas){
 
-let docsSalida = salidas.map(x => String(x[2]).trim());
-
-let activos = [];
+let sal=new Set(salidas.map(x=>String(x[2]).trim()));
+let map=new Map();
 
 ingresos.forEach(f=>{
-
-const rol = String(f[4]).toUpperCase();
-const doc = String(f[2]).trim();
-
-if(rol=="CONTRATISTA"){
-
-if(!docsSalida.includes(doc)){
-
-activos.push({
-nombre:f[3],
-empresa:f[5]
+if(String(f[4]).toUpperCase()==="CONTRATISTA"){
+let d=String(f[2]).trim();
+if(!sal.has(d)){
+map.set(d,{n:f[3],e:f[5]});
+}
+}
 });
 
-}
+let activos=[...map.values()];
 
-}
+document.getElementById("dentro").innerText=activos.length;
 
-});
-
-document.getElementById("dentro").innerText = activos.length;
-
-let html = "";
-
-activos.forEach(x=>{
-
-html += `
+document.getElementById("listaDentro").innerHTML=
+activos.length
+?activos.map(x=>`
 <div class="item">
-<strong>${x.nombre}</strong><br>
-${x.empresa || "-"}
-</div>
-`;
-
-});
-
-document.getElementById("listaDentro").innerHTML =
-html || "<div class='item'>Sin contratistas activos</div>";
-
+<strong>${x.n}</strong><br>${x.e||"-"}
+</div>`).join("")
+:"<div class='item'>Sin contratistas activos</div>";
 }
 
 function reloj(){
-
-document.getElementById("hora").innerText =
+document.getElementById("hora").innerText=
 new Date().toLocaleTimeString([],{
-hour:'2-digit',
-minute:'2-digit'
+hour:'2-digit',minute:'2-digit'
 });
-
 }
 
 cargarDashboard();
