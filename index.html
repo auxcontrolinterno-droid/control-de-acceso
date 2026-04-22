@@ -110,9 +110,9 @@
   <!-- ROL -->
   <select id="rolSelect" onchange="cambiarVista()">
     <option value="">Defina su rol</option>
-    <option value="VISITANTE">Visitante</option>
-    <option value="CONTRATISTA">Contratista</option>
-    <option value="PROVEEDOR">Proveedor</option>
+    <option value="VISITANTE">VISITANTE</option>
+    <option value="CONTRATISTA">CONTRATISTA</option>
+    <option value="PROVEEDOR">PROVEEDOR</option>
   </select>
 
   <!-- DOCUMENTO + TIPO -->
@@ -243,9 +243,9 @@ function normalizarRol(rol){
 
   const r = rol.toLowerCase();
 
-  if(r.includes("visit")) return "Visitante";
-  if(r.includes("contra")) return "Contratista";
-  if(r.includes("prove")) return "Proveedor";
+  if(r.includes("visit")) return "VISITANTE";
+  if(r.includes("contra")) return "CONTRATISTA";
+  if(r.includes("prove")) return "PROVEEDOR";
 
   return rol;
 }
