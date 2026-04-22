@@ -187,19 +187,38 @@ async function cargarDatos(){
 window.onload = cargarDatos;
 
 /* VISTA */
+<script>
 function cambiarVista(){
-
-  document.getElementById("zonaCedula").classList.remove("hidden");
-  document.getElementById("zonaIngreso").classList.remove("hidden");
 
   const rol = document.getElementById("rolSelect").value;
 
-  if(rol === "CONTRATISTA" || rol === "PROVEEDOR"){
-    document.getElementById("zonaSalida").classList.remove("hidden");
-  }else{
-    document.getElementById("zonaSalida").classList.add("hidden");
+  const zonaCedula = document.getElementById("zonaCedula");
+  const zonaIngreso = document.getElementById("zonaIngreso");
+  const zonaSalida = document.getElementById("zonaSalida");
+  const mensaje = document.getElementById("mensaje");
+
+  if(rol === ""){
+    zonaCedula.classList.add("hidden");
+    zonaIngreso.classList.add("hidden");
+    zonaSalida.classList.add("hidden");
+    mensaje.innerText = "Registre su ingreso/salida";
+    return;
   }
+
+  /* Mostrar campos principales */
+  zonaCedula.classList.remove("hidden");
+  zonaIngreso.classList.remove("hidden");
+
+  /* Mostrar salida solo contratista/proveedor */
+  if(rol === "CONTRATISTA" || rol === "PROVEEDOR"){
+    zonaSalida.classList.remove("hidden");
+  }else{
+    zonaSalida.classList.add("hidden");
+  }
+
+  mensaje.innerText = "Registre su ingreso/salida";
 }
+</script>
 
 /* USUARIO */
 function getUser(){
