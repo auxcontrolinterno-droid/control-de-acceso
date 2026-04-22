@@ -5,93 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <style>
-  body{
-    font-family:'Inter',sans-serif;
-    background:linear-gradient(135deg,#e9eef5,#dfe7f1);
-    margin:0;
-    text-align:center;
-  }
+<style>
+body{
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(135deg,#e9eef5,#dfe7f1);
+  margin:0;
+  text-align:center;
+}
 
-  .header{
-    background:white;
-    padding:10px 0;
-    border-bottom:2px solid #0b3d91;
-    box-shadow:0 2px 6px rgba(0,0,0,.05);
-  }
+.header{
+  background:white;
+  padding:10px 0;
+  border-bottom:2px solid #0b3d91;
+}
 
-  .header img{
-    width:55%;
-    max-width:200px;
-  }
+.header img{
+  width:55%;
+  max-width:200px;
+}
 
-  .container{
-    background:white;
-    width:90%;
-    max-width:380px;
-    margin:30px auto;
-    padding:25px;
-    border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
-  }
+.container{
+  background:white;
+  width:90%;
+  max-width:380px;
+  margin:30px auto;
+  padding:25px;
+  border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
 
-  h2{
-    margin-bottom:10px;
-    color:#0b3d91;
-    font-size:24px;
-    font-weight:700;
-  }
+h2{
+  color:#0b3d91;
+}
 
-  .mensaje{
-    font-size:13px;
-    color:#444;
-    margin-bottom:15px;
-    min-height:20px;
-  }
+input,select{
+  width:80%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  margin-bottom:14px;
+}
 
-  input,select{
-    width:80%;
-    padding:12px;
-    border-radius:10px;
-    border:1px solid #ccc;
-    margin-bottom:14px;
-    outline:none;
-    font-family:'Inter',sans-serif;
-  }
+.btn{
+  width:100%;
+  padding:13px;
+  border:none;
+  border-radius:12px;
+  color:white;
+  font-size:15px;
+  margin-bottom:12px;
+  cursor:pointer;
+}
 
-  .btn{
-    width:100%;
-    padding:13px;
-    border:none;
-    border-radius:12px;
-    color:white;
-    font-size:15px;
-    margin-bottom:12px;
-    cursor:pointer;
-    font-family:'Inter',sans-serif;
-  }
+.ingreso{ background:#0b3d91; }
+.salida{ background:#c62828; }
 
-  .ingreso{ background:#0b3d91; }
-  .salida{ background:#c62828; }
+.hidden{ display:none; }
 
-  .hidden{ display:none; }
-
-  .footer{
-    font-size:11px;
-    margin-top:20px;
-    line-height:1.4;
-  }
-
-  .footer .departamento{
-    color:#0b3d91;
-    font-weight:700;
-  }
-
-  .footer .corporacion{
-    color:#000;
-    font-weight:700;
-  }
-  </style>
+.mensaje{
+  font-size:13px;
+  margin-bottom:10px;
+  color:#444;
+  min-height:20px;
+}
+</style>
 </head>
 
 <body>
@@ -102,35 +79,27 @@
 
 <div class="container">
 
-  <h2>Control de Acceso</h2>
-  <div class="mensaje" id="mensaje"></div>
+<h2>Control de Acceso</h2>
 
-  <select id="rolSelect" onchange="cambiarVista()">
-    <option value="">Defina su rol</option>
-    <option value="VISITANTE">Visitante</option>
-    <option value="CONTRATISTA">Contratista</option>
-  </select>
+<div class="mensaje" id="mensaje"></div>
 
-  <div id="zonaCedula" class="hidden">
-    <input id="docInput" placeholder="Número de documento">
-  </div>
+<select id="rolSelect" onchange="cambiarVista()">
+  <option value="">Defina su rol</option>
+  <option value="VISITANTE">Visitante</option>
+  <option value="CONTRATISTA">Contratista</option>
+</select>
 
-  <div id="zonaIngreso" class="hidden">
-    <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
-  </div>
+<div id="zonaCedula" class="hidden">
+  <input id="docInput" placeholder="Número de documento">
+</div>
 
-  <div id="zonaSalida" class="hidden">
-    <button class="btn salida" onclick="irSalida()">Salida</button>
-  </div>
+<div id="zonaIngreso" class="hidden">
+  <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>
+</div>
 
-  <div class="footer">
-    <div class="departamento">
-      DEPARTAMENTO DE CONTROL INTERNO DE SEGURIDAD E INFRAESTRUCTURA
-    </div>
-    <div class="corporacion">
-      CORPORACION COLEGIO INTERNACIONAL ALTAMIRA
-    </div>
-  </div>
+<div id="zonaSalida" class="hidden">
+  <button class="btn salida" onclick="irSalida()">Salida</button>
+</div>
 
 </div>
 
@@ -149,18 +118,17 @@ const json = JSON.parse(text.substring(47).slice(0,-2));
 data = json.table.rows.map(r=>{
 const c = (r.c || []).map(x => x ? x.v : "");
 return{
-tipo:c[1] || "",
-doc:c[2] || "",
-nombre:c[3] || "",
-rol:c[4] || "",
-entidad:c[5] || "",
-placa:c[6] || "",
-contacto:c[8] || "",
-emergencia:c[9] || "",
-parentesco:c[11] || ""
+tipo:c[1],
+doc:c[2],
+nombre:c[3],
+rol:c[4],
+entidad:c[5],
+placa:c[6],
+contacto:c[8],
+emergencia:c[9],
+parentesco:c[11]
 };
 });
-
 }catch(e){
 alert("Error cargando base");
 }
@@ -168,7 +136,13 @@ alert("Error cargando base");
 
 window.onload = cargarDatos;
 
-/* VISTA */
+/* BUSCAR */
+function getUser(){
+const doc = document.getElementById("docInput").value.trim();
+return data.find(u => String(u.doc).trim() === doc);
+}
+
+/* CAMBIAR VISTA */
 function cambiarVista(){
 const rol = document.getElementById("rolSelect").value;
 
@@ -182,29 +156,21 @@ document.getElementById("zonaSalida").classList.add("hidden");
 }
 }
 
-/* BUSCAR */
-function getUser(){
-const doc = document.getElementById("docInput").value.trim();
-return data.find(u => String(u.doc).trim() === doc);
-}
-
 /* MENSAJE */
-document.addEventListener("input", function(e){
+document.addEventListener("input", e=>{
 if(e.target.id !== "docInput") return;
 
 const user = getUser();
-const mensaje = document.getElementById("mensaje");
+const msg = document.getElementById("mensaje");
 
 if(!e.target.value){
-mensaje.innerText = "";
+msg.innerText="";
 return;
 }
 
-if(user){
-mensaje.innerText = "Bienvenido nuevamente, " + user.nombre.split(" ")[0] + " 👋";
-}else{
-mensaje.innerText = "Bienvenido a nuestras instalaciones 😊";
-}
+msg.innerText = user
+? "Bienvenido " + user.nombre.split(" ")[0] + " 👋"
+: "Bienvenido a nuestras instalaciones 😊";
 });
 
 /* INGRESO */
@@ -249,6 +215,7 @@ location.reload();
 
 }
 
+/* 🚪 SALIDA FINAL (USANDO INGRESOS) */
 function irSalida(){
 
 const doc = document.getElementById("docInput").value.trim();
@@ -261,18 +228,12 @@ return;
 const user = getUser();
 
 if(!user){
-alert("Usuario no encontrado");
+alert("Usuario no encontrado en INGRESOS");
 return;
 }
 
-// 👇 Confirmación manual antes de enviar
-const confirmar = confirm(
-"¿Confirmas registrar la SALIDA de " + user.nombre + "?"
-);
-
-if(!confirmar){
-return; // ❌ no envía nada
-}
+const confirmar = confirm("Registrar SALIDA de: " + user.nombre + "?");
+if(!confirmar) return;
 
 const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
 
@@ -298,6 +259,7 @@ location.reload();
 });
 
 }
+
 </script>
 
 </body>
