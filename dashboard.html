@@ -11,7 +11,7 @@ const URL_SALIDAS =
 "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
 
 /* =========================
-   SAFE DOM
+   DOM SAFE
 ========================= */
 
 const $ = (id) => document.getElementById(id);
@@ -27,85 +27,96 @@ let lastHash = "";
 ========================= */
 
 function safe(v){
-return (v ?? "").toString().trim();
+  return (v ?? "").toString().trim();
 }
 
 /* =========================
-   FIX PARSER GOOGLE SHEETS
+   PARSER SEGURO GOOGLE SHEETS
 ========================= */
 
 function parseGoogleJSON(txt){
-try {
-const start = txt.indexOf("{");
-const end = txt.lastIndexOf("}");
-return JSON.parse(txt.slice(start, end + 1));
-} catch (e) {
-console.error("Parse error:", e);
-return null;
-}
+  try {
+    const start = txt.indexOf("{");
+    const end = txt.lastIndexOf("}");
+    return JSON.parse(txt.slice(start, end + 1));
+  } catch (e) {
+    console.error("Error parseando JSON:", e);
+    return null;
+  }
 }
 
 /* =========================
-   API SHEETS
+   LEER SHEET
 ========================= */
 
 async function leerSheet(url){
-try{
-const res = await fetch(url);
-const txt = await res.text();
+  try{
+    const res = await fetch(url);
+    const txt = await res.text();
 
-const json = parseGoogleJSON(txt);
-if(!json?.table?.rows) return [];
+    const json = parseGoogleJSON(txt);
+    if(!json?.table?.rows) return [];
 
-return json.table.rows.map(r =>
-(r.c || []).map(x => x ? x.v : "")
-);
+    return json.table.rows.map(r => {
+      const c = (r.c || []).map(x => x ? x.v : "");
 
-}catch(e){
-console.error("Fetch error:", e);
-return [];
-}
+      return {
+        nombre: c[0] || "",
+        doc: c[1] || "",
+        rol: c[2] || "",
+        tipoDoc: c[3] || "",
+        entidad: c[4] || "",
+        placa: c[5] || "",
+        contacto: c[6] || "",
+        emergencia: c[7] || "",
+        parentesco: c[8] || "",
+        hora: c[9] || "",
+        fecha: c[10] || ""
+      };
+    });
+
+  } catch(e){
+    console.error("Error fetch sheet:", e);
+    return [];
+  }
 }
 
 /* =========================
-   FECHA
+   FECHA SEGURA
 ========================= */
 
 function convertirFecha(v){
-if(!v) return null;
+  if(!v) return null;
 
-if(v instanceof Date) return v;
+  if(v instanceof Date) return v;
 
-if(typeof v === "number"){
-return new Date(Math.round((v - 25569) * 86400 * 1000));
-}
+  if(typeof v === "number"){
+    return new Date(Math.round((v - 25569) * 86400 * 1000));
+  }
 
-if(typeof v === "string"){
-const d = new Date(v);
-if(!isNaN(d)) return d;
-}
+  if(typeof v === "string"){
+    const d = new Date(v);
+    if(!isNaN(d)) return d;
+  }
 
-if(typeof v==="string" && v.includes("Date(")){
-const n=v.match(/\d+/g)?.map(Number);
-if(n) return new Date(n[0],n[1],n[2],n[3]||0,n[4]||0,n[5]||0);
-}
-
-return null;
+  return null;
 }
 
 /* =========================
-   HOY
+   ES HOY
 ========================= */
 
 function esHoy(v){
-const f = convertirFecha(v);
-if(!f) return false;
+  const f = convertirFecha(v);
+  if(!f) return false;
 
-const h = new Date();
+  const h = new Date();
 
-return f.getDate() === h.getDate() &&
-f.getMonth() === h.getMonth() &&
-f.getFullYear() === h.getFullYear();
+  return (
+    f.getDate() === h.getDate() &&
+    f.getMonth() === h.getMonth() &&
+    f.getFullYear() === h.getFullYear()
+  );
 }
 
 /* =========================
@@ -113,12 +124,13 @@ f.getFullYear() === h.getFullYear();
 ========================= */
 
 function hora(v){
-const f = convertirFecha(v);
-if(!f) return "--";
+  const f = convertirFecha(v);
+  if(!f) return "--";
 
-return f.toLocaleTimeString([],{
-hour:'2-digit',minute:'2-digit'
-});
+  return f.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 /* =========================
@@ -127,34 +139,36 @@ hour:'2-digit',minute:'2-digit'
 
 async function cargarDashboard(){
 
-try{
+  try{
 
-if($("estado")) $("estado").innerText="🟢 Online";
+    if($("estado")) $("estado").innerText = "🟢 Online";
 
-let ingresosRaw = await leerSheet(URL_INGRESOS);
-let salidasRaw = await leerSheet(URL_SALIDAS);
+    let ingresosRaw = await leerSheet(URL_INGRESOS);
+    let salidasRaw = await leerSheet(URL_SALIDAS);
 
-let hash = ingresosRaw.length + "-" + salidasRaw.length;
+    let hash = ingresosRaw.length + "-" + salidasRaw.length;
 
-if(hash === lastHash) return;
-lastHash = hash;
+    if(hash === lastHash) return;
+    lastHash = hash;
 
-let ingresos = ingresosRaw.filter(f => esHoy(f[10]));
-let salidas = salidasRaw.filter(f => esHoy(f[10]));
+    /* FILTRO HOY */
+    let ingresos = ingresosRaw.filter(f => esHoy(f.fecha));
+    let salidas = salidasRaw.filter(f => esHoy(f.fecha));
 
-if($("ingresos")) $("ingresos").innerText = ingresos.length;
-if($("salidas")) $("salidas").innerText = salidas.length;
+    /* CARDS */
+    if($("ingresos")) $("ingresos").innerText = ingresos.length;
+    if($("salidas")) $("salidas").innerText = salidas.length;
 
-if($("actualizado"))
-$("actualizado").innerText = new Date().toLocaleTimeString();
+    if($("actualizado"))
+      $("actualizado").innerText = new Date().toLocaleTimeString();
 
-ultimosMovimientos(ingresos, salidas);
-contratistas(ingresos, salidas);
+    ultimosMovimientos(ingresos, salidas);
+    contratistas(ingresos, salidas);
 
-}catch(e){
-console.error(e);
-if($("estado")) $("estado").innerText="🔴 Error";
-}
+  }catch(e){
+    console.error(e);
+    if($("estado")) $("estado").innerText = "🔴 Error";
+  }
 
 }
 
@@ -164,44 +178,48 @@ if($("estado")) $("estado").innerText="🔴 Error";
 
 function ultimosMovimientos(ingresos, salidas){
 
-let mov=[];
+  let mov = [];
 
-ingresos.forEach(f=>{
-mov.push({
-h: f[9],
-n: safe(f[0]),
-r: safe(f[2]) || "Sin rol",
-t: "Ingreso"
-});
-});
+  ingresos.forEach(f=>{
+    mov.push({
+      h: f.hora,
+      n: safe(f.nombre),
+      r: safe(f.rol) || "Sin rol",
+      t: "Ingreso"
+    });
+  });
 
-salidas.forEach(f=>{
-mov.push({
-h: f[9],
-n: safe(f[0]),
-r: safe(f[2]) || "Sin rol",
-t: "Salida"
-});
-});
+  salidas.forEach(f=>{
+    mov.push({
+      h: f.hora,
+      n: safe(f.nombre),
+      r: safe(f.rol) || "Sin rol",
+      t: "Salida"
+    });
+  });
 
-mov.sort((a,b)=>convertirFecha(b.h)-convertirFecha(a.h));
-mov = mov.slice(0,10);
+  mov.sort((a,b)=>{
+    const da = convertirFecha(a.h)?.getTime() || 0;
+    const db = convertirFecha(b.h)?.getTime() || 0;
+    return db - da;
+  });
 
-if(!$("tabla")) return;
+  mov = mov.slice(0,10);
 
-$("tabla").innerHTML =
-mov.map(m=>`
-<tr>
-<td>${hora(m.h)}</td>
-<td>${m.n}</td>
-<td>${m.r}</td>
-<td>${
-m.t === "Ingreso"
-? '<span class="badge-in">Ingreso</span>'
-: '<span class="badge-out">Salida</span>'
-}</td>
-</tr>
-`).join("");
+  if(!$("tabla")) return;
+
+  $("tabla").innerHTML = mov.map(m => `
+    <tr>
+      <td>${hora(m.h)}</td>
+      <td>${m.n}</td>
+      <td>${m.r}</td>
+      <td>
+        ${m.t === "Ingreso"
+          ? '<span class="badge-in">Ingreso</span>'
+          : '<span class="badge-out">Salida</span>'}
+      </td>
+    </tr>
+  `).join("");
 
 }
 
@@ -211,35 +229,38 @@ m.t === "Ingreso"
 
 function contratistas(ingresos, salidas){
 
-let sal = new Set(salidas.map(x => safe(x[1])));
-let map = new Map();
+  let sal = new Set(salidas.map(x => safe(x.doc)));
+  let map = new Map();
 
-ingresos.forEach(f=>{
-if(String(f[2]).toUpperCase() === "CONTRATISTA"){
-let doc = safe(f[1]);
-if(!sal.has(doc)){
-map.set(doc,{
-n: safe(f[0]),
-e: safe(f[5])
-});
-}
-}
-});
+  ingresos.forEach(f=>{
+    if(String(f.rol).toUpperCase() === "CONTRATISTA"){
 
-let activos = [...map.values()];
+      let doc = safe(f.doc);
 
-if($("dentro")) $("dentro").innerText = activos.length;
+      if(!sal.has(doc)){
+        map.set(doc,{
+          n: f.nombre,
+          e: f.contacto
+        });
+      }
 
-if($("listaDentro")){
-$("listaDentro").innerHTML =
-activos.length
-? activos.map(x=>`
-<div class="item">
-<strong>${x.n}</strong><br>${x.e || "-"}
-</div>
-`).join("")
-: "<div class='item'>Sin contratistas activos</div>";
-}
+    }
+  });
+
+  let activos = [...map.values()];
+
+  if($("dentro")) $("dentro").innerText = activos.length;
+
+  if($("listaDentro")){
+    $("listaDentro").innerHTML =
+      activos.length
+        ? activos.map(x=>`
+            <div class="item">
+              <strong>${x.n}</strong><br>${x.e || "-"}
+            </div>
+          `).join("")
+        : "<div class='item'>Sin contratistas activos</div>";
+  }
 
 }
 
@@ -248,12 +269,12 @@ activos.length
 ========================= */
 
 function reloj(){
-if($("hora")){
-$("hora").innerText =
-new Date().toLocaleTimeString([],{
-hour:'2-digit',minute:'2-digit'
-});
-}
+  if($("hora")){
+    $("hora").innerText = new Date().toLocaleTimeString([], {
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+  }
 }
 
 /* =========================
@@ -261,11 +282,9 @@ hour:'2-digit',minute:'2-digit'
 ========================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-
-cargarDashboard();
-setInterval(cargarDashboard, 5000);
-setInterval(reloj, 1000);
-
+  cargarDashboard();
+  setInterval(cargarDashboard, 5000);
+  setInterval(reloj, 1000);
 });
 
 </script>
