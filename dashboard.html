@@ -1,63 +1,53 @@
 <script>
 
 document.addEventListener("DOMContentLoaded", () => {
-  iniciarDashboard();
+  init();
 });
-
-function $(id){
-  return document.getElementById(id);
-}
 
 /* =========================
    CONFIG
 ========================= */
 
-const URL_INGRESOS =
+const INGRESOS_URL =
 "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
-const URL_SALIDAS =
+const SALIDAS_URL =
 "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
+
+const $ = id => document.getElementById(id);
 
 /* =========================
    INIT
 ========================= */
 
-function iniciarDashboard(){
+function init(){
 
-  try{
+  renderBase();
 
-    renderBase(); // 🔥 siempre dibuja estructura
+  load();
 
-    cargarDatos();
-
-    setInterval(cargarDatos, 8000);
-
-    setInterval(reloj, 1000);
-
-  }catch(e){
-    console.error(e);
-    document.body.innerHTML = "❌ Error crítico dashboard: " + e;
-  }
+  setInterval(load, 6000);
+  setInterval(clock, 1000);
 
 }
 
 /* =========================
-   ESTRUCTURA BASE (ANTI-BLANCO)
+   UI BASE
 ========================= */
 
 function renderBase(){
 
-  if(document.getElementById("dashboard_inicial")) return;
-
   document.body.innerHTML = `
     <div style="font-family:Arial;padding:20px">
 
-      <h2>📊 Dashboard Control de Acceso</h2>
+      <h2>📊 Control de Acceso</h2>
 
       <div id="estado">Cargando...</div>
-      <div>Ingresos hoy: <b id="ingresos">0</b></div>
-      <div>Salidas hoy: <b id="salidas">0</b></div>
-      <div>Actualizado: <span id="actualizado">--</span></div>
+
+      <p>Ingresos: <b id="ingresos">0</b></p>
+      <p>Salidas: <b id="salidas">0</b></p>
+
+      <p>Actualizado: <span id="actualizado">--</span></p>
 
       <hr>
 
@@ -73,143 +63,132 @@ function renderBase(){
         <tbody id="tabla"></tbody>
       </table>
 
-      <hr>
-
-      <h3>Contratistas activos</h3>
-      <div id="dentro">0</div>
-      <div id="listaDentro"></div>
-
     </div>
   `;
 
 }
 
 /* =========================
-   FETCH SEGURO
+   FETCH SAFE
 ========================= */
 
-async function leer(url){
+async function fetchSheet(url){
 
   try{
+
     const r = await fetch(url);
     const t = await r.text();
 
     const json = JSON.parse(t.substring(47).slice(0,-2));
 
-    return json.table.rows.map(r => (r.c || []).map(x => x ? x.v : ""));
+    return json.table.rows.map(r => {
+      const c = (r.c || []).map(x => x ? x.v : "");
+      return {
+        nombre: c[0],
+        doc: c[1],
+        rol: c[2],
+        hora: c[9],
+        fecha: c[10]
+      };
+    });
 
   }catch(e){
-    console.error("Error sheet:", e);
+    console.error(e);
     return [];
   }
 
 }
 
 /* =========================
-   FECHA
+   DATE
 ========================= */
 
-function convertir(v){
-
+function parseDate(v){
   if(!v) return null;
-
-  if(typeof v === "number"){
-    return new Date((v - 25569) * 86400 * 1000);
-  }
-
   const d = new Date(v);
   return isNaN(d) ? null : d;
-
 }
 
-function esHoy(v){
+function isToday(v){
+  const d = parseDate(v);
+  if(!d) return false;
 
-  const f = convertir(v);
-  if(!f) return false;
+  const n = new Date();
 
-  const h = new Date();
-
-  return f.getDate()===h.getDate() &&
-         f.getMonth()===h.getMonth() &&
-         f.getFullYear()===h.getFullYear();
-
+  return d.getDate()==n.getDate() &&
+         d.getMonth()==n.getMonth() &&
+         d.getFullYear()==n.getFullYear();
 }
 
-function hora(v){
+function time(v){
+  const d = parseDate(v);
+  if(!d) return "--";
 
-  const f = convertir(v);
-  if(!f) return "--";
-
-  return f.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-
+  return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
 }
 
 /* =========================
-   CORE
+   LOAD
 ========================= */
 
-async function cargarDatos(){
+async function load(){
 
   try{
 
-    const ingresosRaw = await leer(URL_INGRESOS);
-    const salidasRaw = await leer(URL_SALIDAS);
+    const ingresosRaw = await fetchSheet(INGRESOS_URL);
+    const salidasRaw = await fetchSheet(SALIDAS_URL);
 
-    const ingresos = ingresosRaw.filter(f => esHoy(f[10]));
-    const salidas = salidasRaw.filter(f => esHoy(f[10]));
+    const ingresos = ingresosRaw.filter(x => isToday(x.fecha));
+    const salidas = salidasRaw.filter(x => isToday(x.fecha));
 
-    if($("ingresos")) $("ingresos").innerText = ingresos.length;
-    if($("salidas")) $("salidas").innerText = salidas.length;
+    $("ingresos").innerText = ingresos.length;
+    $("salidas").innerText = salidas.length;
 
-    if($("actualizado")) $("actualizado").innerText = new Date().toLocaleTimeString();
+    $("actualizado").innerText = new Date().toLocaleTimeString();
 
-    renderMovimientos(ingresos, salidas);
-    renderContratistas(ingresos, salidas);
+    renderTable(ingresos, salidas);
 
-    if($("estado")) $("estado").innerText = "🟢 Online";
+    $("estado").innerText = "🟢 Online";
 
   }catch(e){
     console.error(e);
-    if($("estado")) $("estado").innerText = "🔴 Error";
+    $("estado").innerText = "🔴 Error";
   }
 
 }
 
 /* =========================
-   MOVIMIENTOS
+   TABLE
 ========================= */
 
-function renderMovimientos(ingresos, salidas){
+function renderTable(ingresos, salidas){
 
   let mov = [];
 
-  ingresos.forEach(f=>{
+  ingresos.forEach(x=>{
     mov.push({
-      h:f[9],
-      n:f[0],
-      r:f[2],
+      h:x.hora,
+      n:x.nombre,
+      r:x.rol,
       t:"Ingreso"
     });
   });
 
-  salidas.forEach(f=>{
+  salidas.forEach(x=>{
     mov.push({
-      h:f[9],
-      n:f[0],
-      r:f[2],
+      h:x.hora,
+      n:x.nombre,
+      r:x.rol,
       t:"Salida"
     });
   });
 
-  mov.sort((a,b)=> new Date(b.h) - new Date(a.h));
+  mov.sort((a,b)=> new Date(b.h)-new Date(a.h));
   mov = mov.slice(0,10);
 
-  const tb = $("tabla");
-  if(!tb) return;
-
-  tb.innerHTML = mov.map(m=>`
+  $("tabla").innerHTML = mov.map(m=>`
     <tr>
-      <td>${hora(m.h)}</td>
+      <td>${time(m.h)}</td>
       <td>${m.n}</td>
       <td>${m.r}</td>
       <td>${m.t}</td>
@@ -219,40 +198,11 @@ function renderMovimientos(ingresos, salidas){
 }
 
 /* =========================
-   CONTRATISTAS
+   CLOCK
 ========================= */
 
-function renderContratistas(ingresos, salidas){
-
-  let sal = new Set(salidas.map(x=>x[1]));
-  let list = [];
-
-  ingresos.forEach(f=>{
-    if(String(f[2]).toUpperCase()==="CONTRATISTA"){
-      if(!sal.has(f[1])){
-        list.push(f[0]);
-      }
-    }
-  });
-
-  if($("dentro")) $("dentro").innerText = list.length;
-
-  if($("listaDentro")){
-    $("listaDentro").innerHTML =
-      list.length ? list.map(n=>`<div>${n}</div>`).join("")
-                  : "Sin contratistas activos";
-  }
-
-}
-
-/* =========================
-   RELOJ
-========================= */
-
-function reloj(){
-  if($("actualizado")){
-    $("actualizado").innerText = new Date().toLocaleTimeString();
-  }
+function clock(){
+  $("actualizado").innerText = new Date().toLocaleTimeString();
 }
 
 </script>
