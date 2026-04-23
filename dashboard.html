@@ -2,46 +2,109 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Dashboard Control</title>
+<title>Control de Acceso - Dashboard</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-body{font-family:Arial;background:#f5f6fa;padding:20px}
-.box{background:white;padding:15px;margin-bottom:10px;border-radius:10px}
-table{width:100%;border-collapse:collapse}
-td,th{border:1px solid #ddd;padding:5px}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(135deg,#e9eef5,#dfe7f1);
+  margin:0;
+  padding:20px;
+}
+
+/* CARD */
+.card{
+  background:white;
+  padding:18px;
+  border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+  margin-bottom:15px;
+}
+
+/* HEADER */
+h2{
+  color:#0b3d91;
+  margin:0;
+}
+
+/* STATS */
+.stats{
+  display:flex;
+  justify-content:space-between;
+  margin-top:10px;
+}
+
+/* TABLE */
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+
+td,th{
+  border-bottom:1px solid #ddd;
+  padding:8px;
+  text-align:left;
+}
+
+.badge-in{
+  color:#0b3d91;
+  font-weight:bold;
+}
+
+.badge-out{
+  color:#c62828;
+  font-weight:bold;
+}
+
+.small{
+  font-size:12px;
+  color:#666;
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="box">
-<h2>📊 Dashboard Control de Acceso</h2>
-<div id="estado">Cargando...</div>
+<div class="card">
+  <h2>📊 Control de Acceso</h2>
+  <div class="small">Dashboard en tiempo real</div>
+
+  <div class="stats">
+    <div>📥 Ingresos: <b id="ingresos">0</b></div>
+    <div>📤 Salidas: <b id="salidas">0</b></div>
+  </div>
+
+  <div class="small" id="estado">Cargando...</div>
 </div>
 
-<div class="box">
-📥 Ingresos hoy: <b id="ingresos">0</b><br>
-📤 Salidas hoy: <b id="salidas">0</b>
-</div>
+<div class="card">
+  <h3>Últimos movimientos</h3>
 
-<div class="box">
-<table>
-<thead>
-<tr>
-<th>Hora</th>
-<th>Nombre</th>
-<th>Rol</th>
-<th>Tipo</th>
-</tr>
-</thead>
-<tbody id="tabla"></tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>Hora</th>
+        <th>Nombre</th>
+        <th>Rol</th>
+        <th>Tipo</th>
+      </tr>
+    </thead>
+
+    <tbody id="tabla"></tbody>
+  </table>
 </div>
 
 <script>
 
 /* =========================
-   SHEETS (INGRESOS / SALIDAS)
+   SHEETS
 ========================= */
 
 const URL_INGRESOS =
@@ -54,30 +117,30 @@ const URL_SALIDAS =
    SAFE PARSER
 ========================= */
 
-async function readSheet(url){
+async function leer(url){
 
   try{
 
-    const r = await fetch(url);
-    const t = await r.text();
+    const res = await fetch(url);
+    const text = await res.text();
 
-    const json = JSON.parse(t.substring(47).slice(0,-2));
+    const json = JSON.parse(text.substring(47).slice(0,-2));
 
     return (json.table.rows || []).map(r=>{
       const c = (r.c || []).map(x => x ? x.v : "");
 
       return {
-        nombre:c[0],
-        doc:c[1],
-        rol:c[2],
-        hora:c[9],
-        fecha:c[10]
+        nombre: c[0],
+        doc: c[1],
+        rol: c[2],
+        hora: c[9],
+        fecha: c[10]
       };
 
     });
 
   }catch(e){
-    console.log("ERROR:", e);
+    console.log(e);
     return [];
   }
 
@@ -87,8 +150,9 @@ async function readSheet(url){
    FECHA HOY
 ========================= */
 
-function isToday(v){
+function hoy(v){
   if(!v) return false;
+
   const d = new Date(v);
   if(isNaN(d)) return false;
 
@@ -103,13 +167,13 @@ function isToday(v){
    HORA
 ========================= */
 
-function time(v){
+function hora(v){
   const d = new Date(v);
   if(isNaN(d)) return "--";
 
   return d.toLocaleTimeString([],{
-    hour:"2-digit",
-    minute:"2-digit"
+    hour:'2-digit',
+    minute:'2-digit'
   });
 }
 
@@ -121,11 +185,11 @@ async function load(){
 
   try{
 
-    const ingresosRaw = await readSheet(URL_INGRESOS);
-    const salidasRaw = await readSheet(URL_SALIDAS);
+    const ingresosRaw = await leer(URL_INGRESOS);
+    const salidasRaw = await leer(URL_SALIDAS);
 
-    const ingresos = ingresosRaw.filter(x=>isToday(x.fecha));
-    const salidas = salidasRaw.filter(x=>isToday(x.fecha));
+    const ingresos = ingresosRaw.filter(x => hoy(x.fecha));
+    const salidas = salidasRaw.filter(x => hoy(x.fecha));
 
     document.getElementById("ingresos").innerText = ingresos.length;
     document.getElementById("salidas").innerText = salidas.length;
@@ -145,26 +209,28 @@ async function load(){
     document.getElementById("tabla").innerHTML =
     mov.map(m=>`
       <tr>
-        <td>${time(m.hora)}</td>
-        <td>${m.nombre}</td>
-        <td>${m.rol}</td>
-        <td>${m.tipo}</td>
+        <td>${hora(m.hora)}</td>
+        <td>${m.nombre || "-"}</td>
+        <td>${m.rol || "-"}</td>
+        <td class="${m.tipo==='Ingreso'?'badge-in':'badge-out'}">
+          ${m.tipo}
+        </td>
       </tr>
     `).join("");
 
-    document.getElementById("estado").innerText = "🟢 Online";
+    document.getElementById("estado").innerText = "🟢 Sistema Online";
 
   }catch(e){
 
     console.log(e);
-    document.getElementById("estado").innerText = "🔴 Error";
+    document.getElementById("estado").innerText = "🔴 Error cargando datos";
 
   }
 
 }
 
 load();
-setInterval(load,5000);
+setInterval(load, 5000);
 
 </script>
 
