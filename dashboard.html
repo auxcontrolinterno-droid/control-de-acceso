@@ -4,8 +4,6 @@
   <title>Dashboard Accesos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
     body{
       font-family: Arial;
@@ -24,7 +22,6 @@
 
     .cards{
       display:flex;
-      flex-wrap:wrap;
       justify-content:center;
       gap:15px;
       padding:20px;
@@ -37,12 +34,6 @@
       width:180px;
       text-align:center;
       box-shadow:0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .card h3{
-      margin:0;
-      font-size:14px;
-      color:#555;
     }
 
     .card p{
@@ -68,7 +59,6 @@
     th,td{
       padding:10px;
       border-bottom:1px solid #ddd;
-      text-align:left;
       font-size:13px;
     }
 
@@ -77,10 +67,13 @@
       color:white;
     }
 
-    select{
+    .alerta{
+      background:#fff3cd;
+      color:#856404;
       padding:10px;
-      margin:20px;
+      margin:10px;
       border-radius:8px;
+      text-align:center;
     }
   </style>
 </head>
@@ -89,17 +82,11 @@
 
 <div class="header">Dashboard de Accesos</div>
 
+<div id="errorBox" class="alerta" style="display:none;">
+  ⚠️ Error cargando datos
+</div>
+
 <div class="cards">
-  <div class="card">
-    <h3>Ingresos</h3>
-    <p id="ingresos">0</p>
-  </div>
-
-  <div class="card">
-    <h3>Salidas</h3>
-    <p id="salidas">0</p>
-  </div>
-
   <div class="card">
     <h3>Dentro</h3>
     <p id="dentro">0</p>
@@ -108,15 +95,18 @@
 
 <div class="container">
 
-<select id="filtroRol" onchange="renderTabla()">
-  <option value="">Todos</option>
-  <option value="VISITANTE">VISITANTE</option>
-  <option value="CONTRATISTA">CONTRATISTA</option>
-  <option value="PROVEEDOR">PROVEEDOR</option>
-</select>
+<h3>🟢 Contratistas dentro</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Documento</th>
+    </tr>
+  </thead>
+  <tbody id="contratistas"></tbody>
+</table>
 
-<canvas id="grafico"></canvas>
-
+<h3>📋 Últimos movimientos</h3>
 <table>
   <thead>
     <tr>
@@ -144,14 +134,16 @@ async function cargarDatos(){
     const text = await res.text();
     const json = JSON.parse(text.substring(47).slice(0,-2));
 
+    document.getElementById("errorBox").style.display = "none";
+
     registros = json.table.rows.map(r => {
       const c = (r.c || []).map(x => x ? x.v : "");
 
       return {
-        tipo: c[1], // INGRESO / SALIDA
-        rol: c[2],
+        tipo: c[1],
+        documento: c[2],
         nombre: c[3],
-        documento: c[4],
+        rol: c[4],
         fecha: formatearFecha(c[0])
       }
     });
@@ -159,98 +151,86 @@ async function cargarDatos(){
     procesar();
 
   }catch(e){
-    alert("Error cargando datos");
+    document.getElementById("errorBox").style.display = "block";
   }
 }
 
-/* FORMATEAR FECHA BONITA */
-function formatearFecha(fechaRaw){
+/* FECHA */
+function formatearFecha(f){
+  if(!f) return "";
 
-  if(!fechaRaw) return "";
-
-  if(typeof fechaRaw === "string" && fechaRaw.includes("Date")){
-    const partes = fechaRaw.match(/\d+/g);
-    return new Date(
-      partes[0],
-      partes[1],
-      partes[2],
-      partes[3] || 0,
-      partes[4] || 0
-    ).toLocaleString();
+  if(typeof f === "string" && f.includes("Date")){
+    const p = f.match(/\d+/g);
+    return new Date(p[0],p[1],p[2],p[3]||0,p[4]||0).toLocaleString();
   }
 
-  return new Date(fechaRaw).toLocaleString();
+  return new Date(f).toLocaleString();
 }
 
-/* PROCESAR CONTADORES */
+/* PROCESAR */
 function procesar(){
 
-  let ingresos = registros.filter(r => r.tipo === "INGRESO").length;
-  let salidas = registros.filter(r => r.tipo === "SALIDA").length;
+  const dentroMap = {};
 
-  document.getElementById("ingresos").innerText = ingresos;
-  document.getElementById("salidas").innerText = salidas;
-  document.getElementById("dentro").innerText = ingresos - salidas;
+  registros.forEach(r => {
+    if(r.tipo === "INGRESO"){
+      dentroMap[r.documento] = r;
+    }
+    if(r.tipo === "SALIDA"){
+      delete dentroMap[r.documento];
+    }
+  });
 
+  const dentro = Object.values(dentroMap);
+
+  document.getElementById("dentro").innerText = dentro.length;
+
+  renderContratistas(dentro);
   renderTabla();
-  renderGrafico();
 }
 
-/* TABLA */
+/* CONTRATISTAS DENTRO */
+function renderContratistas(lista){
+
+  const tbody = document.getElementById("contratistas");
+  tbody.innerHTML = "";
+
+  lista
+    .filter(p => p.rol === "CONTRATISTA")
+    .forEach(p => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.nombre}</td>
+          <td>${p.documento}</td>
+        </tr>
+      `;
+    });
+}
+
+/* ÚLTIMOS MOVIMIENTOS */
 function renderTabla(){
-
-  const filtro = document.getElementById("filtroRol").value;
-
-  let data = registros;
-
-  if(filtro){
-    data = data.filter(r => r.rol === filtro);
-  }
 
   const tbody = document.getElementById("tabla");
   tbody.innerHTML = "";
 
-  data.slice().reverse().forEach(r => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${r.nombre}</td>
-        <td>${r.documento}</td>
-        <td>${r.rol}</td>
-        <td>${r.tipo}</td>
-        <td>${r.fecha}</td>
-      </tr>
-    `;
-  });
+  registros
+    .slice()
+    .reverse()
+    .slice(0,20)
+    .forEach(r => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${r.nombre}</td>
+          <td>${r.documento}</td>
+          <td>${r.rol}</td>
+          <td>${r.tipo}</td>
+          <td>${r.fecha}</td>
+        </tr>
+      `;
+    });
 }
 
-/* GRAFICO */
-function renderGrafico(){
-
-  const roles = {
-    VISITANTE:0,
-    CONTRATISTA:0,
-    PROVEEDOR:0
-  };
-
-  registros.forEach(r => {
-    if(roles[r.rol] !== undefined){
-      roles[r.rol]++;
-    }
-  });
-
-  new Chart(document.getElementById("grafico"), {
-    type: "bar",
-    data: {
-      labels: Object.keys(roles),
-      datasets: [{
-        label: "Registros",
-        data: Object.values(roles)
-      }]
-    }
-  });
-}
-
-/* AUTO REFRESH (cada 30 segundos) */
+/* AUTO REFRESH */
 setInterval(cargarDatos, 30000);
 
 cargarDatos();
