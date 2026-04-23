@@ -166,7 +166,12 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7
 
 let registros = [];
 
-/* PARSE FECHA */
+/* LIMPIAR TEXTO */
+function limpiar(t){
+  return String(t || "").trim().toUpperCase();
+}
+
+/* FECHA */
 function parseFecha(f){
   if(!f) return null;
 
@@ -192,56 +197,75 @@ function esHoy(f){
 /* CARGAR DATOS */
 async function cargarDatos(){
   try{
-    const res = await fetch(SHEET_URL);
+    const res = await fetch(SHEET_URL + "&nocache=" + new Date().getTime());
     const text = await res.text();
     const json = JSON.parse(text.substring(47).slice(0,-2));
-
-    document.getElementById("errorBox").style.display="none";
 
     registros = json.table.rows.map(r=>{
       const c = (r.c||[]).map(x=>x?x.v:"");
 
-      return {
-        fecha: parseFecha(c[0]),
-        tipo: c[1],
-        documento: c[2],
-        nombre: c[3],
-        rol: c[4]
-      }
-    }).filter(r=>r.fecha && esHoy(r.fecha));
+      let fecha = null;
+      let tipo = "";
+      let documento = "";
+      let nombre = "";
+      let rol = "";
+
+      c.forEach(v => {
+
+        const val = limpiar(v);
+
+        if(String(v).includes("Date")){
+          fecha = parseFecha(v);
+        }
+
+        if(val.includes("INGRESO")) tipo = "INGRESO";
+        if(val.includes("SALIDA")) tipo = "SALIDA";
+
+        if(val.includes("CONTRATISTA")) rol = "CONTRATISTA";
+        if(val.includes("PROVEEDOR")) rol = "PROVEEDOR";
+        if(val.includes("VISITANTE")) rol = "VISITANTE";
+
+        if(/^\d{5,}$/.test(val)) documento = val;
+
+        if(val.includes(" ") && !nombre && isNaN(val)){
+          nombre = v;
+        }
+
+      });
+
+      return { fecha, tipo, documento, nombre, rol };
+
+    }).filter(r => r.fecha && esHoy(r.fecha));
 
     procesar();
 
   }catch(e){
-    document.getElementById("errorBox").style.display="block";
+    console.error("Error:", e);
   }
 }
 
 /* PROCESAR */
 function procesar(){
 
-  let ingresos = registros.filter(r=>r.tipo==="INGRESO").length;
-  let salidas = registros.filter(r=>r.tipo==="SALIDA").length;
+  let ingresos = registros.filter(r => r.tipo === "INGRESO").length;
+  let salidas = registros.filter(r => r.tipo === "SALIDA").length;
 
   document.getElementById("ingresos").innerText = ingresos;
   document.getElementById("salidas").innerText = salidas;
 
-  // 🔥 último movimiento por persona
   const estado = {};
-  registros.forEach(r => {
-    estado[r.documento] = r;
+
+  registros.forEach(r=>{
+    if(r.documento){
+      estado[r.documento] = r;
+    }
   });
 
   const dentro = Object.values(estado)
     .filter(r => r.tipo === "INGRESO");
 
-  const contratistas = dentro.filter(r => 
-    r.rol && r.rol.toUpperCase().includes("CONTRATISTA")
-  );
-
-  const proveedores = dentro.filter(r => 
-    r.rol && r.rol.toUpperCase().includes("PROVEEDOR")
-  );
+  const contratistas = dentro.filter(r => r.rol === "CONTRATISTA");
+  const proveedores = dentro.filter(r => r.rol === "PROVEEDOR");
 
   document.getElementById("contratistasCount").innerText = contratistas.length;
   document.getElementById("proveedoresCount").innerText = proveedores.length;
@@ -250,7 +274,7 @@ function procesar(){
   renderMovimientos();
 }
 
-/* CONTRATISTAS DENTRO */
+/* CONTRATISTAS */
 function renderContratistas(lista){
   const t = document.getElementById("tablaContratistas");
   t.innerHTML = "";
@@ -271,16 +295,16 @@ function renderContratistas(lista){
   });
 }
 
-/* ÚLTIMOS MOVIMIENTOS */
+/* MOVIMIENTOS */
 function renderMovimientos(){
   const t = document.getElementById("tablaMovimientos");
   t.innerHTML = "";
 
   registros.slice().reverse().slice(0,20).forEach(r=>{
 
-    const estado = r.tipo==="INGRESO"
-      ? '<span class="badge-ing">🟢 Ingresó</span>'
-      : '<span class="badge-sal">🔴 Salió</span>';
+    const estado = r.tipo === "INGRESO"
+      ? '<span style="color:green">🟢 Ingresó</span>'
+      : '<span style="color:red">🔴 Salió</span>';
 
     t.innerHTML += `
       <tr>
@@ -294,8 +318,8 @@ function renderMovimientos(){
   });
 }
 
-/* REFRESH AUTOMÁTICO */
-setInterval(cargarDatos,30000);
+/* REFRESH */
+setInterval(cargarDatos, 10000);
 cargarDatos();
 
 </script>
