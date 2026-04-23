@@ -23,7 +23,6 @@
     .cards{
       display:flex;
       justify-content:center;
-      gap:15px;
       padding:20px;
     }
 
@@ -31,7 +30,7 @@
       background:white;
       padding:20px;
       border-radius:12px;
-      width:180px;
+      width:200px;
       text-align:center;
       box-shadow:0 4px 10px rgba(0,0,0,0.1);
     }
@@ -60,12 +59,16 @@
       padding:10px;
       border-bottom:1px solid #ddd;
       font-size:13px;
+      text-align:left;
     }
 
     th{
       background:#0b3d91;
       color:white;
     }
+
+    .ingreso{ color:green; font-weight:bold; }
+    .salida{ color:red; font-weight:bold; }
 
     .alerta{
       background:#fff3cd;
@@ -74,21 +77,22 @@
       margin:10px;
       border-radius:8px;
       text-align:center;
+      display:none;
     }
   </style>
 </head>
 
 <body>
 
-<div class="header">Dashboard de Accesos</div>
+<div class="header">Dashboard de Accesos (Hoy)</div>
 
-<div id="errorBox" class="alerta" style="display:none;">
+<div id="errorBox" class="alerta">
   ⚠️ Error cargando datos
 </div>
 
 <div class="cards">
   <div class="card">
-    <h3>Dentro</h3>
+    <h3>Personas dentro</h3>
     <p id="dentro">0</p>
   </div>
 </div>
@@ -101,6 +105,7 @@
     <tr>
       <th>Nombre</th>
       <th>Documento</th>
+      <th>Hora ingreso</th>
     </tr>
   </thead>
   <tbody id="contratistas"></tbody>
@@ -113,8 +118,8 @@
       <th>Nombre</th>
       <th>Documento</th>
       <th>Rol</th>
-      <th>Tipo</th>
-      <th>Fecha</th>
+      <th>Estado</th>
+      <th>Hora</th>
     </tr>
   </thead>
   <tbody id="tabla"></tbody>
@@ -128,6 +133,30 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7
 
 let registros = [];
 
+/* FORMATEAR FECHA */
+function parseFecha(f){
+  if(!f) return null;
+
+  if(typeof f === "string" && f.includes("Date")){
+    const p = f.match(/\d+/g);
+    return new Date(p[0],p[1],p[2],p[3]||0,p[4]||0);
+  }
+
+  return new Date(f);
+}
+
+function soloHora(date){
+  return date.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+function esHoy(fecha){
+  const hoy = new Date();
+  return fecha.getDate() === hoy.getDate() &&
+         fecha.getMonth() === hoy.getMonth() &&
+         fecha.getFullYear() === hoy.getFullYear();
+}
+
+/* CARGAR */
 async function cargarDatos(){
   try{
     const res = await fetch(SHEET_URL);
@@ -138,15 +167,17 @@ async function cargarDatos(){
 
     registros = json.table.rows.map(r => {
       const c = (r.c || []).map(x => x ? x.v : "");
+      const fechaObj = parseFecha(c[0]);
 
       return {
         tipo: c[1],
         documento: c[2],
         nombre: c[3],
         rol: c[4],
-        fecha: formatearFecha(c[0])
+        fecha: fechaObj
       }
-    });
+    })
+    .filter(r => r.fecha && esHoy(r.fecha)); // 👈 SOLO HOY
 
     procesar();
 
@@ -155,33 +186,17 @@ async function cargarDatos(){
   }
 }
 
-/* FECHA */
-function formatearFecha(f){
-  if(!f) return "";
-
-  if(typeof f === "string" && f.includes("Date")){
-    const p = f.match(/\d+/g);
-    return new Date(p[0],p[1],p[2],p[3]||0,p[4]||0).toLocaleString();
-  }
-
-  return new Date(f).toLocaleString();
-}
-
 /* PROCESAR */
 function procesar(){
 
-  const dentroMap = {};
+  const estadoFinal = {};
 
   registros.forEach(r => {
-    if(r.tipo === "INGRESO"){
-      dentroMap[r.documento] = r;
-    }
-    if(r.tipo === "SALIDA"){
-      delete dentroMap[r.documento];
-    }
+    estadoFinal[r.documento] = r;
   });
 
-  const dentro = Object.values(dentroMap);
+  const dentro = Object.values(estadoFinal)
+    .filter(r => r.tipo === "INGRESO");
 
   document.getElementById("dentro").innerText = dentro.length;
 
@@ -189,7 +204,7 @@ function procesar(){
   renderTabla();
 }
 
-/* CONTRATISTAS DENTRO */
+/* CONTRATISTAS */
 function renderContratistas(lista){
 
   const tbody = document.getElementById("contratistas");
@@ -202,12 +217,13 @@ function renderContratistas(lista){
         <tr>
           <td>${p.nombre}</td>
           <td>${p.documento}</td>
+          <td>${soloHora(p.fecha)}</td>
         </tr>
       `;
     });
 }
 
-/* ÚLTIMOS MOVIMIENTOS */
+/* TABLA */
 function renderTabla(){
 
   const tbody = document.getElementById("tabla");
@@ -218,19 +234,24 @@ function renderTabla(){
     .reverse()
     .slice(0,20)
     .forEach(r => {
+
+      const estado = r.tipo === "INGRESO"
+        ? '<span class="ingreso">🟢 Ingresó</span>'
+        : '<span class="salida">🔴 Salió</span>';
+
       tbody.innerHTML += `
         <tr>
           <td>${r.nombre}</td>
           <td>${r.documento}</td>
           <td>${r.rol}</td>
-          <td>${r.tipo}</td>
-          <td>${r.fecha}</td>
+          <td>${estado}</td>
+          <td>${soloHora(r.fecha)}</td>
         </tr>
       `;
     });
 }
 
-/* AUTO REFRESH */
+/* REFRESH */
 setInterval(cargarDatos, 30000);
 
 cargarDatos();
