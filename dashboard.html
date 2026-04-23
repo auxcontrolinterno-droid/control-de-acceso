@@ -1,236 +1,227 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>Control de Acceso - Dashboard</title>
+  <title>Dashboard Accesos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body{
+      font-family: Arial;
+      margin:0;
+      background:#f4f6f9;
+    }
 
-<style>
+    .header{
+      background:#0b3d91;
+      color:white;
+      padding:15px;
+      text-align:center;
+      font-size:20px;
+      font-weight:bold;
+    }
 
-body{
-  font-family:'Inter',sans-serif;
-  background:linear-gradient(135deg,#e9eef5,#dfe7f1);
-  margin:0;
-  padding:20px;
-}
+    .cards{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:15px;
+      padding:20px;
+    }
 
-/* CARD */
-.card{
-  background:white;
-  padding:18px;
-  border-radius:18px;
-  box-shadow:0 10px 25px rgba(0,0,0,.08);
-  margin-bottom:15px;
-}
+    .card{
+      background:white;
+      padding:20px;
+      border-radius:12px;
+      width:180px;
+      text-align:center;
+      box-shadow:0 4px 10px rgba(0,0,0,0.1);
+    }
 
-/* HEADER */
-h2{
-  color:#0b3d91;
-  margin:0;
-}
+    .card h3{
+      margin:0;
+      font-size:14px;
+      color:#555;
+    }
 
-/* STATS */
-.stats{
-  display:flex;
-  justify-content:space-between;
-  margin-top:10px;
-}
+    .card p{
+      font-size:28px;
+      margin:10px 0 0;
+      font-weight:bold;
+      color:#0b3d91;
+    }
 
-/* TABLE */
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
-}
+    .container{
+      width:95%;
+      max-width:1000px;
+      margin:auto;
+    }
 
-td,th{
-  border-bottom:1px solid #ddd;
-  padding:8px;
-  text-align:left;
-}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:white;
+      margin-top:20px;
+    }
 
-.badge-in{
-  color:#0b3d91;
-  font-weight:bold;
-}
+    th,td{
+      padding:10px;
+      border-bottom:1px solid #ddd;
+      text-align:left;
+      font-size:13px;
+    }
 
-.badge-out{
-  color:#c62828;
-  font-weight:bold;
-}
+    th{
+      background:#0b3d91;
+      color:white;
+    }
 
-.small{
-  font-size:12px;
-  color:#666;
-}
-
-</style>
+    select{
+      padding:10px;
+      margin:20px;
+      border-radius:8px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>📊 Control de Acceso</h2>
-  <div class="small">Dashboard en tiempo real</div>
+<div class="header">Dashboard de Accesos</div>
 
-  <div class="stats">
-    <div>📥 Ingresos: <b id="ingresos">0</b></div>
-    <div>📤 Salidas: <b id="salidas">0</b></div>
+<div class="cards">
+  <div class="card">
+    <h3>Ingresos</h3>
+    <p id="ingresos">0</p>
   </div>
 
-  <div class="small" id="estado">Cargando...</div>
+  <div class="card">
+    <h3>Salidas</h3>
+    <p id="salidas">0</p>
+  </div>
+
+  <div class="card">
+    <h3>Dentro</h3>
+    <p id="dentro">0</p>
+  </div>
 </div>
 
-<div class="card">
-  <h3>Últimos movimientos</h3>
+<div class="container">
 
-  <table>
-    <thead>
-      <tr>
-        <th>Hora</th>
-        <th>Nombre</th>
-        <th>Rol</th>
-        <th>Tipo</th>
-      </tr>
-    </thead>
+<select id="filtroRol" onchange="renderTabla()">
+  <option value="">Todos</option>
+  <option value="VISITANTE">VISITANTE</option>
+  <option value="CONTRATISTA">CONTRATISTA</option>
+  <option value="PROVEEDOR">PROVEEDOR</option>
+</select>
 
-    <tbody id="tabla"></tbody>
-  </table>
+<canvas id="grafico"></canvas>
+
+<table>
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Documento</th>
+      <th>Rol</th>
+      <th>Tipo</th>
+      <th>Fecha</th>
+    </tr>
+  </thead>
+  <tbody id="tabla"></tbody>
+</table>
+
 </div>
 
 <script>
 
-/* =========================
-   SHEETS
-========================= */
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?tqx=out:json";
 
-const URL_INGRESOS =
-"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964";
+let registros = [];
 
-const URL_SALIDAS =
-"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943";
+async function cargarDatos(){
+  const res = await fetch(SHEET_URL);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(47).slice(0,-2));
 
-/* =========================
-   SAFE PARSER
-========================= */
+  registros = json.table.rows.map(r => {
+    const c = (r.c || []).map(x => x ? x.v : "");
 
-async function leer(url){
+    return {
+      tipo: c[0], // INGRESO / SALIDA
+      rol: c[1],
+      nombre: c[2],
+      documento: c[3],
+      fecha: c[4]
+    }
+  });
 
-  try{
+  procesar();
+}
 
-    const res = await fetch(url);
-    const text = await res.text();
+function procesar(){
+  let ingresos = registros.filter(r => r.tipo === "INGRESO").length;
+  let salidas = registros.filter(r => r.tipo === "SALIDA").length;
 
-    const json = JSON.parse(text.substring(47).slice(0,-2));
+  document.getElementById("ingresos").innerText = ingresos;
+  document.getElementById("salidas").innerText = salidas;
+  document.getElementById("dentro").innerText = ingresos - salidas;
 
-    return (json.table.rows || []).map(r=>{
-      const c = (r.c || []).map(x => x ? x.v : "");
+  renderTabla();
+  renderGrafico();
+}
 
-      return {
-        nombre: c[0],
-        doc: c[1],
-        rol: c[2],
-        hora: c[9],
-        fecha: c[10]
-      };
+function renderTabla(){
+  const filtro = document.getElementById("filtroRol").value;
 
-    });
+  let data = registros;
 
-  }catch(e){
-    console.log(e);
-    return [];
+  if(filtro){
+    data = data.filter(r => r.rol === filtro);
   }
 
-}
+  const tbody = document.getElementById("tabla");
+  tbody.innerHTML = "";
 
-/* =========================
-   FECHA HOY
-========================= */
-
-function hoy(v){
-  if(!v) return false;
-
-  const d = new Date(v);
-  if(isNaN(d)) return false;
-
-  const n = new Date();
-
-  return d.getDate()==n.getDate() &&
-         d.getMonth()==n.getMonth() &&
-         d.getFullYear()==n.getFullYear();
-}
-
-/* =========================
-   HORA
-========================= */
-
-function hora(v){
-  const d = new Date(v);
-  if(isNaN(d)) return "--";
-
-  return d.toLocaleTimeString([],{
-    hour:'2-digit',
-    minute:'2-digit'
+  data.slice().reverse().forEach(r => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.nombre}</td>
+        <td>${r.documento}</td>
+        <td>${r.rol}</td>
+        <td>${r.tipo}</td>
+        <td>${r.fecha}</td>
+      </tr>
+    `;
   });
 }
 
-/* =========================
-   LOAD
-========================= */
+function renderGrafico(){
 
-async function load(){
+  const roles = {
+    VISITANTE:0,
+    CONTRATISTA:0,
+    PROVEEDOR:0
+  };
 
-  try{
+  registros.forEach(r => {
+    if(roles[r.rol] !== undefined){
+      roles[r.rol]++;
+    }
+  });
 
-    const ingresosRaw = await leer(URL_INGRESOS);
-    const salidasRaw = await leer(URL_SALIDAS);
-
-    const ingresos = ingresosRaw.filter(x => hoy(x.fecha));
-    const salidas = salidasRaw.filter(x => hoy(x.fecha));
-
-    document.getElementById("ingresos").innerText = ingresos.length;
-    document.getElementById("salidas").innerText = salidas.length;
-
-    let mov = [];
-
-    ingresos.forEach(x=>{
-      mov.push({...x, tipo:"Ingreso"});
-    });
-
-    salidas.forEach(x=>{
-      mov.push({...x, tipo:"Salida"});
-    });
-
-    mov = mov.slice(0,10);
-
-    document.getElementById("tabla").innerHTML =
-    mov.map(m=>`
-      <tr>
-        <td>${hora(m.hora)}</td>
-        <td>${m.nombre || "-"}</td>
-        <td>${m.rol || "-"}</td>
-        <td class="${m.tipo==='Ingreso'?'badge-in':'badge-out'}">
-          ${m.tipo}
-        </td>
-      </tr>
-    `).join("");
-
-    document.getElementById("estado").innerText = "🟢 Sistema Online";
-
-  }catch(e){
-
-    console.log(e);
-    document.getElementById("estado").innerText = "🔴 Error cargando datos";
-
-  }
-
+  new Chart(document.getElementById("grafico"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(roles),
+      datasets: [{
+        label: "Registros",
+        data: Object.values(roles)
+      }]
+    }
+  });
 }
 
-load();
-setInterval(load, 5000);
+cargarDatos();
 
 </script>
 
