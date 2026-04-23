@@ -2,21 +2,21 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Seguridad Altamira</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
 body{
+font-family:Inter;
+background:linear-gradient(135deg,#eef2f7,#dde6f1);
 margin:0;
-font-family:'Inter',sans-serif;
-background:#eef2f7;
 color:#111;
 }
 
 .header{
-background:white;
+background:#fff;
 padding:18px;
 text-align:center;
 border-bottom:3px solid #0b3d91;
@@ -24,18 +24,14 @@ border-bottom:3px solid #0b3d91;
 
 .header img{width:180px;}
 
-.header h1{
-color:#0b3d91;
-margin-top:10px;
-font-size:24px;
-}
-
 .wrap{
-width:95%;
+width:98%;
+max-width:1600px;
 margin:auto;
 padding:20px;
 }
 
+/* MÁS ESPACIO PC */
 .cards{
 display:grid;
 grid-template-columns:repeat(6,1fr);
@@ -44,18 +40,14 @@ margin-bottom:20px;
 }
 
 .card{
-background:white;
-padding:18px;
-border-radius:12px;
+background:#fff;
+padding:15px;
+border-radius:15px;
 text-align:center;
-box-shadow:0 4px 12px rgba(0,0,0,.08);
+box-shadow:0 5px 15px rgba(0,0,0,.08);
 }
 
-.card h2{
-font-size:30px;
-color:#0b3d91;
-margin:0;
-}
+.card h2{color:#0b3d91;}
 
 .grid{
 display:grid;
@@ -64,10 +56,11 @@ gap:15px;
 }
 
 .panel{
-background:white;
+background:#fff;
 padding:15px;
-border-radius:12px;
-box-shadow:0 4px 12px rgba(0,0,0,.08);
+border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,.08);
+min-height:300px;
 }
 
 table{
@@ -77,28 +70,19 @@ border-collapse:collapse;
 
 th{
 background:#0b3d91;
-color:white;
+color:#fff;
 padding:10px;
-text-align:left;
-font-size:13px;
 }
 
 td{
 padding:10px;
 border-bottom:1px solid #eee;
-font-size:14px;
 }
 
 .item{
-background:#f7f9fc;
 padding:10px;
-margin-bottom:8px;
-border-radius:10px;
+border-bottom:1px solid #eee;
 }
-
-.badge-in{color:green;font-weight:bold;}
-.badge-out{color:red;font-weight:bold;}
-
 </style>
 </head>
 
@@ -106,31 +90,31 @@ border-radius:10px;
 
 <div class="header">
 <img src="https://i.imgur.com/OB279U8.jpeg">
-<h1>Dashboard de Seguridad</h1>
+<h2>Dashboard Seguridad</h2>
 </div>
 
 <div class="wrap">
 
+<!-- CARDS -->
 <div class="cards">
-<div class="card"><h2 id="ingresos">0</h2><small>Ingresos Hoy</small></div>
-<div class="card"><h2 id="salidas">0</h2><small>Salidas Hoy</small></div>
-<div class="card"><h2 id="dentro">0</h2><small>Dentro</small></div>
-<div class="card"><h2 id="hora">--</h2><small>Hora</small></div>
-<div class="card"><h2 id="sync">--</h2><small>Sync</small></div>
-<div class="card"><h2 id="estado">🟢</h2><small>Estado</small></div>
+<div class="card"><small>Ingresos</small><h2 id="ingresos">0</h2></div>
+<div class="card"><small>Salidas</small><h2 id="salidas">0</h2></div>
+<div class="card"><small>Contratistas</small><h2 id="dentro">0</h2></div>
+<div class="card"><small>Proveedores</small><h2 id="proveedores">0</h2></div>
 </div>
 
+<!-- GRID -->
 <div class="grid">
 
 <div class="panel">
-<h3>Últimos Movimientos</h3>
+<h3>Últimos movimientos</h3>
 <table>
 <thead>
 <tr>
 <th>Hora</th>
 <th>Nombre</th>
 <th>Rol</th>
-<th>Tipo</th>
+<th>Movimiento</th>
 </tr>
 </thead>
 <tbody id="tabla"></tbody>
@@ -138,12 +122,12 @@ border-radius:10px;
 </div>
 
 <div class="panel">
-<h3>Contratistas Dentro</h3>
-<div id="listaContratistas"></div>
+<h3>Contratistas dentro</h3>
+<div id="listaDentro"></div>
 </div>
 
 <div class="panel">
-<h3>Proveedores Dentro</h3>
+<h3>Proveedores dentro</h3>
 <div id="listaProveedores"></div>
 </div>
 
@@ -153,141 +137,84 @@ border-radius:10px;
 
 <script>
 
-/* =========================
-   URL SHEETS
-========================= */
+const URL =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
-const INGRESOS_URL="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
-const SALIDAS_URL="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
+let data=[];
 
-/* =========================
-   LECTURA SEGURA (CORREGIDA)
-========================= */
+async function cargar(){
 
-async function leer(url){
-try{
-const res=await fetch(url);
-const text=await res.text();
+const r = await fetch(URL);
+const t = await r.text();
+const j = JSON.parse(t.substring(47).slice(0,-2));
 
-/* 🔥 FIX REAL: Google Sheets response */
-const match=text.match(/google\.visualization\.Query\.setResponse\((.*)\);/s);
-
-if(!match) return [];
-
-const json=JSON.parse(match[1]);
-
-return json.table.rows.map(r=>
-(r.c||[]).map(c=>c?c.v:"")
-);
-
-}catch(e){
-console.log("ERROR SHEET",e);
-return [];
-}
-}
-
-/* =========================
-   FECHA
-========================= */
-
-function hoy(v){
-return new Date(v).toDateString()===new Date().toDateString();
-}
-
-function hora(v){
-return new Date(v).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-}
-
-/* =========================
-   MAIN
-========================= */
-
-async function load(){
-
-let ing=await leer(INGRESOS_URL);
-let sal=await leer(SALIDAS_URL);
-
-if(!ing.length){
-document.getElementById("estado").innerText="🔴 SIN DATOS";
-return;
-}
-
-/* HOY */
-let ingresos=ing.filter(x=>hoy(x[0]));
-let salidas=sal.filter(x=>hoy(x[0]));
-
-/* CARDS */
-document.getElementById("ingresos").innerText=ingresos.length;
-document.getElementById("salidas").innerText=salidas.length;
-document.getElementById("sync").innerText=new Date().toLocaleTimeString();
-
-/* MOVIMIENTOS */
-let mov=[];
-
-ingresos.forEach(f=>{
-mov.push({h:f[0],n:f[3],r:f[4],t:"Ingreso"});
+data = j.table.rows.map(r=>{
+const c = r.c || [];
+return {
+time:c[0]?.v,
+doc:c[2]?.v,
+nombre:c[3]?.v,
+rol:c[4]?.v,
+entidad:c[5]?.v
+};
 });
 
-salidas.forEach(f=>{
-mov.push({h:f[0],n:f[3],r:f[4],t:"Salida"});
-});
+render();
+}
 
-mov.sort((a,b)=>new Date(b.h)-new Date(a.h));
+function hoy(t){
+return new Date(t).toDateString() === new Date().toDateString();
+}
 
-document.getElementById("tabla").innerHTML=
-mov.slice(0,10).map(m=>`
-<tr>
-<td>${hora(m.h)}</td>
-<td>${m.n||"-"}</td>
-<td>${m.r||"-"}</td>
-<td>${m.t}</td>
-</tr>
+function hora(t){
+return new Date(t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+function render(){
+
+let hoyData = data.filter(x=>hoy(x.time));
+
+/* INGRESOS */
+document.getElementById("ingresos").innerText = hoyData.length;
+
+/* SALIDAS (solo si en rol dice salida) */
+let salidas = hoyData.filter(x=>(x.rol||"").toLowerCase().includes("salida"));
+document.getElementById("salidas").innerText = salidas.length;
+
+/* CONTRATISTAS */
+let contratistas = hoyData.filter(x=>(x.rol||"").toUpperCase().includes("CONTRATISTA"));
+
+document.getElementById("dentro").innerText = contratistas.length;
+
+document.getElementById("listaDentro").innerHTML =
+contratistas.map(x=>`
+<div class="item"><b>${x.nombre}</b><br>${x.entidad||""}</div>
 `).join("");
 
+/* PROVEEDORES */
+let proveedores = hoyData.filter(x=>(x.rol||"").toUpperCase().includes("PROVEEDOR"));
 
-/* =========================
-   CONTRATISTAS
-========================= */
+document.getElementById("proveedores").innerText = proveedores.length;
 
-let contratistas=new Map();
-let proveedores=new Map();
+document.getElementById("listaProveedores").innerHTML =
+proveedores.map(x=>`
+<div class="item"><b>${x.nombre}</b><br>${x.entidad||""}</div>
+`).join("");
 
-ingresos.forEach(f=>{
-
-let rol=(f[4]||"").toUpperCase();
-let nombre=f[3];
-let entidad=f[5];
-
-if(rol.includes("CONTRAT")){
-contratistas.set(nombre,entidad);
+/* MOVIMIENTOS */
+document.getElementById("tabla").innerHTML =
+hoyData.slice(-10).reverse().map(x=>`
+<tr>
+<td>${hora(x.time)}</td>
+<td>${x.nombre}</td>
+<td>${x.rol}</td>
+<td>${(x.rol||"").toLowerCase().includes("salida") ? "Salida" : "Ingreso"}</td>
+</tr>
+`).join("");
 }
 
-if(rol.includes("PROVE")){
-proveedores.set(nombre,entidad);
-}
-
-});
-
-document.getElementById("listaContratistas").innerHTML=
-[...contratistas.entries()].map(x=>
-`<div class="item"><b>${x[0]}</b><br>${x[1]}</div>`
-).join("")||"Sin contratistas";
-
-document.getElementById("listaProveedores").innerHTML=
-[...proveedores.entries()].map(x=>
-`<div class="item"><b>${x[0]}</b><br>${x[1]}</div>`
-).join("")||"Sin proveedores";
-
-}
-
-function reloj(){
-document.getElementById("hora").innerText=
-new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-}
-
-load();
-setInterval(load,5000);
-setInterval(reloj,1000);
+cargar();
+setInterval(cargar,5000);
 
 </script>
 
