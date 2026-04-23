@@ -16,6 +16,14 @@ background:linear-gradient(135deg,#eef2f7,#dde6f1);
 color:#111;
 }
 
+/* SOLO PC / TV (más ancho estable) */
+.wrap{
+width:98%;
+max-width:1900px;
+margin:auto;
+padding:15px;
+}
+
 /* HEADER */
 .header{
 background:#fff;
@@ -24,74 +32,51 @@ text-align:center;
 border-bottom:3px solid #0b3d91;
 }
 
-.header img{width:180px;max-width:80%;}
+.header img{width:180px;}
+.header h1{margin-top:10px;color:#0b3d91;}
 
-.header h1{
-margin-top:10px;
-font-size:24px;
-color:#0b3d91;
-}
-
-/* WRAP */
-.wrap{
-width:95%;
-max-width:1300px;
-margin:auto;
-padding:25px 0;
-}
-
-/* CARDS */
+/* CARDS GRANDES */
 .cards{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:15px;
-margin-bottom:25px;
+grid-template-columns:repeat(6,1fr);
+gap:12px;
+margin-bottom:20px;
 }
 
 .card{
 background:#fff;
-padding:20px;
-border-radius:18px;
-box-shadow:0 10px 25px rgba(0,0,0,.08);
-transition:.2s;
-}
-
-.card:hover{
-transform:translateY(-3px);
-}
-
-.card small{
-display:block;
-color:#666;
-margin-bottom:8px;
-font-size:13px;
+padding:16px;
+border-radius:14px;
+text-align:center;
+box-shadow:0 6px 15px rgba(0,0,0,.08);
 }
 
 .card h2{
-font-size:34px;
+font-size:30px;
 color:#0b3d91;
 }
 
-/* GRID */
+/* GRID PC */
 .grid{
 display:grid;
-grid-template-columns:1.3fr .7fr;
-gap:18px;
+grid-template-columns:2fr 1fr 1fr;
+gap:14px;
 }
 
+/* PANEL */
 .panel{
 background:#fff;
-padding:20px;
-border-radius:18px;
-box-shadow:0 10px 25px rgba(0,0,0,.08);
+padding:15px;
+border-radius:14px;
+box-shadow:0 6px 15px rgba(0,0,0,.08);
 }
 
 .panel h3{
-margin-bottom:15px;
+margin-bottom:10px;
 color:#0b3d91;
 }
 
-/* TABLE */
+/* TABLA */
 table{
 width:100%;
 border-collapse:collapse;
@@ -100,65 +85,32 @@ border-collapse:collapse;
 th{
 background:#0b3d91;
 color:#fff;
-padding:12px;
-font-size:13px;
+padding:10px;
 text-align:left;
 }
 
 td{
-padding:11px;
+padding:10px;
 border-bottom:1px solid #eee;
 font-size:14px;
 }
 
-.badge-in{
-background:#dcfce7;
-color:#15803d;
-padding:5px 10px;
-border-radius:20px;
-font-size:12px;
-font-weight:700;
-}
-
-.badge-out{
-background:#fee2e2;
-color:#b91c1c;
-padding:5px 10px;
-border-radius:20px;
-font-size:12px;
-font-weight:700;
-}
-
-/* LISTA */
+/* LISTAS */
 .lista{
 display:flex;
 flex-direction:column;
-gap:10px;
+gap:8px;
 }
 
 .item{
-background:#f8fafc;
-padding:14px;
-border-radius:14px;
-font-size:14px;
-transition:.2s;
+background:#f5f7fb;
+padding:10px;
+border-radius:10px;
 }
 
-.item:hover{
-transform:scale(1.02);
-background:#eef5ff;
-}
-
-/* FOOTER */
-.footer{
-text-align:center;
-margin-top:20px;
-font-size:12px;
-color:#666;
-}
-
-/* RESPONSIVE */
-@media(max-width:900px){
+/* RESPONSIVE SOLO AJUSTE */
+@media(max-width:1200px){
+.cards{grid-template-columns:repeat(3,1fr);}
 .grid{grid-template-columns:1fr;}
 }
 </style>
@@ -175,37 +127,12 @@ color:#666;
 
 <!-- CARDS -->
 <div class="cards">
-
-<div class="card">
-<small>Ingresos Hoy</small>
-<h2 id="ingresos">0</h2>
-</div>
-
-<div class="card">
-<small>Salidas Hoy</small>
-<h2 id="salidas">0</h2>
-</div>
-
-<div class="card">
-<small>Contratistas Dentro</small>
-<h2 id="dentro">0</h2>
-</div>
-
-<div class="card">
-<small>Estado Sistema</small>
-<h2 id="estado">🟡 Cargando</h2>
-</div>
-
-<div class="card">
-<small>Hora Actual</small>
-<h2 id="hora" style="font-size:20px;">--:--</h2>
-</div>
-
-<div class="card">
-<small>Última Sync</small>
-<h2 id="actualizado" style="font-size:18px;">--</h2>
-</div>
-
+<div class="card"><small>Ingresos</small><h2 id="ingresos">0</h2></div>
+<div class="card"><small>Salidas</small><h2 id="salidas">0</h2></div>
+<div class="card"><small>Contratistas</small><h2 id="dentro">0</h2></div>
+<div class="card"><small>Estado</small><h2 id="estado">🟡</h2></div>
+<div class="card"><small>Hora</small><h2 id="hora">--</h2></div>
+<div class="card"><small>Sync</small><h2 id="actualizado">--</h2></div>
 </div>
 
 <!-- GRID -->
@@ -213,14 +140,13 @@ color:#666;
 
 <div class="panel">
 <h3>Últimos Movimientos</h3>
-
 <table>
 <thead>
 <tr>
 <th>Hora</th>
 <th>Nombre</th>
 <th>Rol</th>
-<th>Movimiento</th>
+<th>Estado</th>
 </tr>
 </thead>
 <tbody id="tabla"></tbody>
@@ -229,156 +155,65 @@ color:#666;
 
 <div class="panel">
 <h3>Contratistas Dentro</h3>
-<div class="lista" id="listaDentro"></div>
+<div id="listaDentro" class="lista"></div>
 </div>
 
 <div class="panel">
 <h3>Proveedores Dentro</h3>
-<div class="lista" id="listaProveedores"></div>
+<div id="listaProveedores" class="lista"></div>
 </div>
 
 </div>
-
 </div>
 
 <script>
 
-/* =========================
-   CONFIG
-========================= */
+/* 🔥 NO SE TOCA TU CONEXIÓN */
+const URL_INGRESOS="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+const URL_SALIDAS="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
 
-const URL_INGRESOS =
-"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+let lastHash="";
 
-const URL_SALIDAS =
-"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
-
-/* =========================
-   CACHE (evita renders inútiles)
-========================= */
-
-let lastHash = "";
-
-/* =========================
-   API SHEETS
-========================= */
-
+/* 🔥 TU FUNCIÓN ORIGINAL SIN TOCAR */
 async function leerSheet(url){
-const res = await fetch(url);
-const txt = await res.text();
-const json = JSON.parse(txt.substring(47).slice(0,-2));
-
-return json.table.rows.map(r =>
-(r.c || []).map(x => x ? x.v : "")
-);
-}
-
-/* =========================
-   FECHAS ROBUSTAS
-========================= */
-
-function convertirFecha(v){
-if(!v) return null;
-
-if(v instanceof Date) return v;
-
-if(typeof v === "number"){
-return new Date(Math.round((v - 25569) * 86400 * 1000));
-}
-
-if(typeof v === "string"){
-const d = new Date(v);
-if(!isNaN(d)) return d;
-}
-
-if(typeof v==="string" && v.includes("Date(")){
-const n=v.match(/\d+/g).map(Number);
-return new Date(n[0],n[1],n[2],n[3]||0,n[4]||0,n[5]||0);
-}
-
-return null;
-}
-
-function esHoy(v){
-const f=convertirFecha(v);
-if(!f) return false;
-
-const h=new Date();
-return f.getDate()===h.getDate() &&
-f.getMonth()===h.getMonth() &&
-f.getFullYear()===h.getFullYear();
+const r=await fetch(url);
+const t=await r.text();
+const j=JSON.parse(t.substring(47).slice(0,-2));
+return j.table.rows.map(r=>(r.c||[]).map(x=>x?x.v:""));
 }
 
 function hora(v){
-const f=convertirFecha(v);
-if(!f) return "--";
-
-return f.toLocaleTimeString([],{
-hour:'2-digit',minute:'2-digit'
-});
+let d=new Date(v);
+return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
 }
 
-/* =========================
-   DASHBOARD MAIN
-========================= */
+function esHoy(v){
+let d=new Date(v);
+let h=new Date();
+return d.getDate()==h.getDate() && d.getMonth()==h.getMonth() && d.getFullYear()==h.getFullYear();
+}
 
-async function cargarDashboard(){
+/* MAIN */
+async function cargar(){
 
 try{
 
-document.getElementById("estado").innerText="🟢 Online";
+let ing=await leerSheet(URL_INGRESOS);
+let sal=await leerSheet(URL_SALIDAS);
 
-let ingresosRaw = await leerSheet(URL_INGRESOS);
-let salidasRaw = await leerSheet(URL_SALIDAS);
+ing=ing.filter(x=>esHoy(x[0]));
+sal=sal.filter(x=>esHoy(x[0]));
 
-/* HASH SIMPLE (evita re-render innecesario) */
-let hash = ingresosRaw.length + "-" + salidasRaw.length;
+document.getElementById("ingresos").innerText=ing.length;
+document.getElementById("salidas").innerText=sal.length;
+document.getElementById("actualizado").innerText=new Date().toLocaleTimeString();
 
-if(hash === lastHash){
-return;
-}
-lastHash = hash;
-
-/* FILTRO HOY */
-let ingresos = ingresosRaw.filter(f=>esHoy(f[0]));
-let salidas = salidasRaw.filter(f=>esHoy(f[0]));
-
-/* CARDS */
-document.getElementById("ingresos").innerText = ingresos.length;
-document.getElementById("salidas").innerText = salidas.length;
-
-document.getElementById("actualizado").innerText =
-new Date().toLocaleTimeString();
-
-/* RENDER */
-ultimosMovimientos(ingresos,salidas);
-contratistas(ingresos,salidas);
-proveedores(ingresos,salidas);
-
-}catch(e){
-document.getElementById("estado").innerText="🔴 Error";
-console.log(e);
-}
-
-}
-
-/* =========================
-   MOVIMIENTOS
-========================= */
-
-function ultimosMovimientos(ingresos,salidas){
-
+/* MOVIMIENTOS */
 let mov=[];
+ing.forEach(f=>mov.push({h:f[0],n:f[3],r:f[4],t:"Ingreso"}));
+sal.forEach(f=>mov.push({h:f[0],n:f[3],r:f[4],t:"Salida"}));
 
-ingresos.forEach(f=>{
-mov.push({h:f[0],n:f[3],r:f[4],t:"Ingreso"});
-});
-
-salidas.forEach(f=>{
-mov.push({h:f[0],n:f[3],r:f[4],t:"Salida"});
-});
-
-mov.sort((a,b)=>convertirFecha(b.h)-convertirFecha(a.h));
+mov.sort((a,b)=>new Date(b.h)-new Date(a.h));
 mov=mov.slice(0,10);
 
 document.getElementById("tabla").innerHTML=
@@ -387,98 +222,42 @@ mov.map(m=>`
 <td>${hora(m.h)}</td>
 <td>${m.n||"-"}</td>
 <td>${m.r||"-"}</td>
-<td>${m.t==="Ingreso"
-?'<span class="badge-in">Ingreso</span>'
-:'<span class="badge-out">Salida</span>'}</td>
-</tr>
-`).join("");
-}
+<td>${m.t}</td>
+</tr>`).join("");
 
-/* =========================
-   CONTRATISTAS
-========================= */
+/* CONTRATISTAS */
+let cont=new Map();
+let prov=new Map();
 
-function contratistas(ingresos,salidas){
+ing.forEach(f=>{
+let rol=(f[4]||"").toUpperCase();
 
-let sal=new Set(salidas.map(x=>String(x[2]).trim()));
-let map=new Map();
-
-ingresos.forEach(f=>{
-if(String(f[4]).toUpperCase()==="CONTRATISTA"){
-let d=String(f[2]).trim();
-if(!sal.has(d)){
-map.set(d,{n:f[3],e:f[5]});
-}
-}
+if(rol==="CONTRATISTA") cont.set(f[3],f[5]);
+if(rol==="PROVEEDOR") prov.set(f[3],f[5]);
 });
 
-let activos=[...map.values()];
-
-document.getElementById("dentro").innerText=activos.length;
+document.getElementById("dentro").innerText=cont.size;
 
 document.getElementById("listaDentro").innerHTML=
-activos.length
-?activos.map(x=>`
-<div class="item">
-<strong>${x.n}</strong><br>${x.e||"-"}
-</div>`).join("")
-:"<div class='item'>Sin contratistas activos</div>";
-}
-function proveedores(ingresos,salidas){
-
-let sal=new Set(salidas.map(x=>String(x[2]).trim()));
-let map=new Map();
-
-ingresos.forEach(f=>{
-
-if(String(f[4]||"").toUpperCase()==="PROVEEDOR"){
-
-let d=String(f[2]).trim();
-
-if(!sal.has(d)){
-
-map.set(d,{
-n:f[3],
-e:f[5]||"-"
-});
-
-}
-
-}
-
-});
-
-let activos=[...map.values()];
+[...cont.entries()].map(x=>
+`<div class="item"><b>${x[0]}</b><br>${x[1]}</div>`
+).join("");
 
 document.getElementById("listaProveedores").innerHTML=
-activos.length
-?activos.map(x=>`
-<div class="item">
-<strong>${x.n}</strong><br>
-${x.e}
-</div>`).join("")
-:"<div class='item'>Sin proveedores activos</div>";
-}
-/* =========================
-   RELOJ LOCAL
-========================= */
+[...prov.entries()].map(x=>
+`<div class="item"><b>${x[0]}</b><br>${x[1]}</div>`
+).join("");
 
-function reloj(){
-document.getElementById("hora").innerText=
-new Date().toLocaleTimeString([],{
-hour:'2-digit',minute:'2-digit'
-});
+document.getElementById("estado").innerText="🟢 OK";
+
+}catch(e){
+console.log(e);
+document.getElementById("estado").innerText="🔴 Error";
+}
 }
 
-/* =========================
-   INICIO
-========================= */
-
-cargarDashboard();
-
-/* 🔥 optimizado */
-setInterval(cargarDashboard, 5000); // datos
-setInterval(reloj, 1000);           // reloj
+setInterval(cargar,5000);
+cargar();
 
 </script>
 
