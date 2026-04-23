@@ -424,7 +424,41 @@ activos.length
 </div>`).join("")
 :"<div class='item'>Sin contratistas activos</div>";
 }
+function proveedores(ingresos,salidas){
 
+let sal=new Set(salidas.map(x=>String(x[2]).trim()));
+let map=new Map();
+
+ingresos.forEach(f=>{
+
+if(String(f[4]||"").toUpperCase()==="PROVEEDOR"){
+
+let d=String(f[2]).trim();
+
+if(!sal.has(d)){
+
+map.set(d,{
+n:f[3],
+e:f[5]||"-"
+});
+
+}
+
+}
+
+});
+
+let activos=[...map.values()];
+
+document.getElementById("listaProveedores").innerHTML=
+activos.length
+?activos.map(x=>`
+<div class="item">
+<strong>${x.n}</strong><br>
+${x.e}
+</div>`).join("")
+:"<div class='item'>Sin proveedores activos</div>";
+}
 /* =========================
    RELOJ LOCAL
 ========================= */
