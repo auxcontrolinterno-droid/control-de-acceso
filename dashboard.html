@@ -6,124 +6,173 @@
 
   <style>
     body{
-      font-family: Arial;
+      font-family: 'Segoe UI', Arial;
       margin:0;
-      background:#f4f6f9;
+      background:#eef2f7;
     }
 
     .header{
       background:#0b3d91;
       color:white;
-      padding:15px;
+      padding:18px;
+      font-size:22px;
+      font-weight:600;
       text-align:center;
-      font-size:20px;
-      font-weight:bold;
+      letter-spacing:0.5px;
     }
 
-    .cards{
-      display:flex;
-      justify-content:center;
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap:15px;
       padding:20px;
     }
 
     .card{
       background:white;
-      padding:20px;
-      border-radius:12px;
-      width:200px;
-      text-align:center;
-      box-shadow:0 4px 10px rgba(0,0,0,0.1);
+      border-radius:14px;
+      padding:18px;
+      box-shadow:0 6px 15px rgba(0,0,0,0.08);
+      transition:0.2s;
+    }
+
+    .card:hover{
+      transform:translateY(-3px);
+    }
+
+    .card h4{
+      margin:0;
+      font-size:13px;
+      color:#666;
     }
 
     .card p{
+      margin-top:10px;
       font-size:28px;
-      margin:10px 0 0;
       font-weight:bold;
-      color:#0b3d91;
     }
 
+    .ing{ color:#2e7d32; }
+    .sal{ color:#c62828; }
+    .con{ color:#1565c0; }
+    .pro{ color:#ef6c00; }
+
     .container{
-      width:95%;
-      max-width:1000px;
-      margin:auto;
+      padding:0 20px 30px;
+    }
+
+    .section{
+      margin-top:20px;
+    }
+
+    .section h3{
+      margin-bottom:10px;
+      color:#333;
     }
 
     table{
       width:100%;
       border-collapse:collapse;
       background:white;
-      margin-top:20px;
-    }
-
-    th,td{
-      padding:10px;
-      border-bottom:1px solid #ddd;
-      font-size:13px;
-      text-align:left;
+      border-radius:12px;
+      overflow:hidden;
+      box-shadow:0 4px 10px rgba(0,0,0,0.05);
     }
 
     th{
       background:#0b3d91;
       color:white;
+      padding:10px;
+      font-size:13px;
     }
 
-    .ingreso{ color:green; font-weight:bold; }
-    .salida{ color:red; font-weight:bold; }
+    td{
+      padding:10px;
+      font-size:13px;
+      border-bottom:1px solid #eee;
+    }
+
+    tr:hover{
+      background:#f5f7fa;
+    }
+
+    .badge-ing{color:#2e7d32;font-weight:bold;}
+    .badge-sal{color:#c62828;font-weight:bold;}
 
     .alerta{
+      display:none;
       background:#fff3cd;
       color:#856404;
       padding:10px;
       margin:10px;
       border-radius:8px;
       text-align:center;
-      display:none;
     }
+
   </style>
 </head>
 
 <body>
 
-<div class="header">Dashboard de Accesos (Hoy)</div>
+<div class="header">Control de Accesos - Dashboard</div>
 
 <div id="errorBox" class="alerta">
   ⚠️ Error cargando datos
 </div>
 
-<div class="cards">
+<div class="grid">
   <div class="card">
-    <h3>Personas dentro</h3>
-    <p id="dentro">0</p>
+    <h4>Ingresos hoy</h4>
+    <p class="ing" id="ingresos">0</p>
+  </div>
+
+  <div class="card">
+    <h4>Salidas hoy</h4>
+    <p class="sal" id="salidas">0</p>
+  </div>
+
+  <div class="card">
+    <h4>Contratistas dentro</h4>
+    <p class="con" id="contratistasCount">0</p>
+  </div>
+
+  <div class="card">
+    <h4>Proveedores dentro</h4>
+    <p class="pro" id="proveedoresCount">0</p>
   </div>
 </div>
 
 <div class="container">
 
+<div class="section">
 <h3>🟢 Contratistas dentro</h3>
 <table>
-  <thead>
-    <tr>
-      <th>Nombre</th>
-      <th>Documento</th>
-      <th>Hora ingreso</th>
-    </tr>
-  </thead>
-  <tbody id="contratistas"></tbody>
+<thead>
+<tr>
+<th>Nombre</th>
+<th>Documento</th>
+<th>Hora ingreso</th>
+</tr>
+</thead>
+<tbody id="tablaContratistas"></tbody>
 </table>
+</div>
 
+<div class="section">
 <h3>📋 Últimos movimientos</h3>
 <table>
-  <thead>
-    <tr>
-      <th>Nombre</th>
-      <th>Documento</th>
-      <th>Rol</th>
-      <th>Estado</th>
-      <th>Hora</th>
-    </tr>
-  </thead>
-  <tbody id="tabla"></tbody>
+<thead>
+<tr>
+<th>Nombre</th>
+<th>Documento</th>
+<th>Rol</th>
+<th>Estado</th>
+<th>Hora</th>
+</tr>
+</thead>
+<tbody id="tablaMovimientos"></tbody>
 </table>
+</div>
 
 </div>
 
@@ -133,27 +182,25 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7
 
 let registros = [];
 
-/* FORMATEAR FECHA */
+/* FECHA */
 function parseFecha(f){
   if(!f) return null;
-
   if(typeof f === "string" && f.includes("Date")){
     const p = f.match(/\d+/g);
     return new Date(p[0],p[1],p[2],p[3]||0,p[4]||0);
   }
-
   return new Date(f);
 }
 
-function soloHora(date){
-  return date.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+function soloHora(d){
+  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
 
-function esHoy(fecha){
-  const hoy = new Date();
-  return fecha.getDate() === hoy.getDate() &&
-         fecha.getMonth() === hoy.getMonth() &&
-         fecha.getFullYear() === hoy.getFullYear();
+function esHoy(f){
+  const h = new Date();
+  return f.getDate()==h.getDate() &&
+         f.getMonth()==h.getMonth() &&
+         f.getFullYear()==h.getFullYear();
 }
 
 /* CARGAR */
@@ -163,97 +210,91 @@ async function cargarDatos(){
     const text = await res.text();
     const json = JSON.parse(text.substring(47).slice(0,-2));
 
-    document.getElementById("errorBox").style.display = "none";
+    document.getElementById("errorBox").style.display="none";
 
-    registros = json.table.rows.map(r => {
-      const c = (r.c || []).map(x => x ? x.v : "");
-      const fechaObj = parseFecha(c[0]);
-
+    registros = json.table.rows.map(r=>{
+      const c = (r.c||[]).map(x=>x?x.v:"");
       return {
+        fecha: parseFecha(c[0]),
         tipo: c[1],
         documento: c[2],
         nombre: c[3],
-        rol: c[4],
-        fecha: fechaObj
+        rol: c[4]
       }
-    })
-    .filter(r => r.fecha && esHoy(r.fecha)); // 👈 SOLO HOY
+    }).filter(r=>r.fecha && esHoy(r.fecha));
 
     procesar();
 
   }catch(e){
-    document.getElementById("errorBox").style.display = "block";
+    document.getElementById("errorBox").style.display="block";
   }
 }
 
 /* PROCESAR */
 function procesar(){
 
-  const estadoFinal = {};
+  let ingresos = registros.filter(r=>r.tipo==="INGRESO").length;
+  let salidas = registros.filter(r=>r.tipo==="SALIDA").length;
 
-  registros.forEach(r => {
-    estadoFinal[r.documento] = r;
-  });
+  document.getElementById("ingresos").innerText = ingresos;
+  document.getElementById("salidas").innerText = salidas;
 
-  const dentro = Object.values(estadoFinal)
-    .filter(r => r.tipo === "INGRESO");
+  const estado = {};
+  registros.forEach(r => estado[r.documento] = r);
 
-  document.getElementById("dentro").innerText = dentro.length;
+  const dentro = Object.values(estado).filter(r=>r.tipo==="INGRESO");
 
-  renderContratistas(dentro);
-  renderTabla();
+  const contratistas = dentro.filter(r=>r.rol==="CONTRATISTA");
+  const proveedores = dentro.filter(r=>r.rol==="PROVEEDOR");
+
+  document.getElementById("contratistasCount").innerText = contratistas.length;
+  document.getElementById("proveedoresCount").innerText = proveedores.length;
+
+  renderContratistas(contratistas);
+  renderMovimientos();
 }
 
-/* CONTRATISTAS */
+/* TABLA CONTRATISTAS */
 function renderContratistas(lista){
+  const t = document.getElementById("tablaContratistas");
+  t.innerHTML = "";
 
-  const tbody = document.getElementById("contratistas");
-  tbody.innerHTML = "";
-
-  lista
-    .filter(p => p.rol === "CONTRATISTA")
-    .forEach(p => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${p.nombre}</td>
-          <td>${p.documento}</td>
-          <td>${soloHora(p.fecha)}</td>
-        </tr>
-      `;
-    });
+  lista.forEach(p=>{
+    t.innerHTML += `
+      <tr>
+        <td>${p.nombre}</td>
+        <td>${p.documento}</td>
+        <td>${soloHora(p.fecha)}</td>
+      </tr>
+    `;
+  });
 }
 
-/* TABLA */
-function renderTabla(){
+/* MOVIMIENTOS */
+function renderMovimientos(){
+  const t = document.getElementById("tablaMovimientos");
+  t.innerHTML = "";
 
-  const tbody = document.getElementById("tabla");
-  tbody.innerHTML = "";
+  registros.slice().reverse().slice(0,20).forEach(r=>{
 
-  registros
-    .slice()
-    .reverse()
-    .slice(0,20)
-    .forEach(r => {
+    const estado = r.tipo==="INGRESO"
+      ? '<span class="badge-ing">🟢 Ingresó</span>'
+      : '<span class="badge-sal">🔴 Salió</span>';
 
-      const estado = r.tipo === "INGRESO"
-        ? '<span class="ingreso">🟢 Ingresó</span>'
-        : '<span class="salida">🔴 Salió</span>';
-
-      tbody.innerHTML += `
-        <tr>
-          <td>${r.nombre}</td>
-          <td>${r.documento}</td>
-          <td>${r.rol}</td>
-          <td>${estado}</td>
-          <td>${soloHora(r.fecha)}</td>
-        </tr>
-      `;
-    });
+    t.innerHTML += `
+      <tr>
+        <td>${r.nombre}</td>
+        <td>${r.documento}</td>
+        <td>${r.rol}</td>
+        <td>${estado}</td>
+        <td>${soloHora(r.fecha)}</td>
+      </tr>
+    `;
+  });
 }
 
 /* REFRESH */
-setInterval(cargarDatos, 30000);
-
+setInterval(cargarDatos,30000);
 cargarDatos();
 
 </script>
