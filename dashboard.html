@@ -16,6 +16,7 @@ background:linear-gradient(135deg,#eef2f7,#dde6f1);
 color:#111;
 }
 
+/* HEADER */
 .header{
 background:#fff;
 padding:18px;
@@ -31,6 +32,7 @@ font-size:24px;
 color:#0b3d91;
 }
 
+/* WRAP */
 .wrap{
 width:95%;
 max-width:1300px;
@@ -38,6 +40,7 @@ margin:auto;
 padding:25px 0;
 }
 
+/* CARDS */
 .cards{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -50,6 +53,18 @@ background:#fff;
 padding:20px;
 border-radius:18px;
 box-shadow:0 10px 25px rgba(0,0,0,.08);
+transition:.2s;
+}
+
+.card:hover{
+transform:translateY(-3px);
+}
+
+.card small{
+display:block;
+color:#666;
+margin-bottom:8px;
+font-size:13px;
 }
 
 .card h2{
@@ -57,6 +72,7 @@ font-size:34px;
 color:#0b3d91;
 }
 
+/* GRID */
 .grid{
 display:grid;
 grid-template-columns:1.3fr .7fr;
@@ -70,6 +86,12 @@ border-radius:18px;
 box-shadow:0 10px 25px rgba(0,0,0,.08);
 }
 
+.panel h3{
+margin-bottom:15px;
+color:#0b3d91;
+}
+
+/* TABLE */
 table{
 width:100%;
 border-collapse:collapse;
@@ -79,16 +101,35 @@ th{
 background:#0b3d91;
 color:#fff;
 padding:12px;
-text-align:left;
 font-size:13px;
+text-align:left;
 }
 
 td{
-padding:10px;
+padding:11px;
 border-bottom:1px solid #eee;
 font-size:14px;
 }
 
+.badge-in{
+background:#dcfce7;
+color:#15803d;
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:700;
+}
+
+.badge-out{
+background:#fee2e2;
+color:#b91c1c;
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:700;
+}
+
+/* LISTA */
 .lista{
 display:flex;
 flex-direction:column;
@@ -97,14 +138,26 @@ gap:10px;
 
 .item{
 background:#f8fafc;
-padding:12px;
-border-radius:12px;
+padding:14px;
+border-radius:14px;
 font-size:14px;
+transition:.2s;
 }
 
-.badge-in{color:green;font-weight:bold;}
-.badge-out{color:red;font-weight:bold;}
+.item:hover{
+transform:scale(1.02);
+background:#eef5ff;
+}
 
+/* FOOTER */
+.footer{
+text-align:center;
+margin-top:20px;
+font-size:12px;
+color:#666;
+}
+
+/* RESPONSIVE */
 @media(max-width:900px){
 .grid{grid-template-columns:1fr;}
 }
@@ -120,23 +173,54 @@ font-size:14px;
 
 <div class="wrap">
 
+<!-- CARDS -->
 <div class="cards">
-<div class="card"><h2 id="ingresos">0</h2><small>Ingresos Hoy</small></div>
-<div class="card"><h2 id="salidas">0</h2><small>Salidas Hoy</small></div>
-<div class="card"><h2 id="dentro">0</h2><small>Dentro</small></div>
+
+<div class="card">
+<small>Ingresos Hoy</small>
+<h2 id="ingresos">0</h2>
 </div>
 
+<div class="card">
+<small>Salidas Hoy</small>
+<h2 id="salidas">0</h2>
+</div>
+
+<div class="card">
+<small>Contratistas Dentro</small>
+<h2 id="dentro">0</h2>
+</div>
+
+<div class="card">
+<small>Estado Sistema</small>
+<h2 id="estado">🟡 Cargando</h2>
+</div>
+
+<div class="card">
+<small>Hora Actual</small>
+<h2 id="hora" style="font-size:20px;">--:--</h2>
+</div>
+
+<div class="card">
+<small>Última Sync</small>
+<h2 id="actualizado" style="font-size:18px;">--</h2>
+</div>
+
+</div>
+
+<!-- GRID -->
 <div class="grid">
 
 <div class="panel">
 <h3>Últimos Movimientos</h3>
+
 <table>
 <thead>
 <tr>
 <th>Hora</th>
 <th>Nombre</th>
 <th>Rol</th>
-<th>Tipo</th>
+<th>Movimiento</th>
 </tr>
 </thead>
 <tbody id="tabla"></tbody>
@@ -144,92 +228,146 @@ font-size:14px;
 </div>
 
 <div class="panel">
-<h3>Personas Dentro</h3>
+<h3>Contratistas Dentro</h3>
+<div class="lista" id="listaDentro"></div>
+</div>
 
-<h4>Contratistas</h4>
-<div id="listaContratistas" class="lista"></div>
-
-<h4 style="margin-top:15px;">Proveedores</h4>
-<div id="listaProveedores" class="lista"></div>
-
+<div class="panel">
+<h3>Proveedores Dentro</h3>
+<div class="lista" id="listaProveedores"></div>
 </div>
 
 </div>
+
 </div>
 
 <script>
 
-/* ======================
-CONFIG
-====================== */
+/* =========================
+   CONFIG
+========================= */
 
-const URL_INGRESOS="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
-const URL_SALIDAS="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
+const URL_INGRESOS =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
-let lastHash="";
+const URL_SALIDAS =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
 
-/* ======================
-LECTURA SEGURA
-====================== */
+/* =========================
+   CACHE (evita renders inútiles)
+========================= */
 
-async function leer(url){
-try{
-const r=await fetch(url);
-const t=await r.text();
-const json=JSON.parse(t.substring(47).slice(0,-2));
-return json.table.rows.map(r=>(r.c||[]).map(x=>x?x.v:""));
-}catch(e){
-console.log("error sheet",e);
-return [];
+let lastHash = "";
+
+/* =========================
+   API SHEETS
+========================= */
+
+async function leerSheet(url){
+const res = await fetch(url);
+const txt = await res.text();
+const json = JSON.parse(txt.substring(47).slice(0,-2));
+
+return json.table.rows.map(r =>
+(r.c || []).map(x => x ? x.v : "")
+);
 }
+
+/* =========================
+   FECHAS ROBUSTAS
+========================= */
+
+function convertirFecha(v){
+if(!v) return null;
+
+if(v instanceof Date) return v;
+
+if(typeof v === "number"){
+return new Date(Math.round((v - 25569) * 86400 * 1000));
 }
 
-/* ======================
-FECHA
-====================== */
+if(typeof v === "string"){
+const d = new Date(v);
+if(!isNaN(d)) return d;
+}
+
+if(typeof v==="string" && v.includes("Date(")){
+const n=v.match(/\d+/g).map(Number);
+return new Date(n[0],n[1],n[2],n[3]||0,n[4]||0,n[5]||0);
+}
+
+return null;
+}
 
 function esHoy(v){
-if(!v) return false;
-let d=new Date(v);
-if(isNaN(d)) return false;
+const f=convertirFecha(v);
+if(!f) return false;
 
-let h=new Date();
-return d.getDate()==h.getDate() &&
-d.getMonth()==h.getMonth() &&
-d.getFullYear()==h.getFullYear();
+const h=new Date();
+return f.getDate()===h.getDate() &&
+f.getMonth()===h.getMonth() &&
+f.getFullYear()===h.getFullYear();
 }
 
 function hora(v){
-let d=new Date(v);
-return isNaN(d)?"--":d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+const f=convertirFecha(v);
+if(!f) return "--";
+
+return f.toLocaleTimeString([],{
+hour:'2-digit',minute:'2-digit'
+});
 }
 
-/* ======================
-MAIN
-====================== */
+/* =========================
+   DASHBOARD MAIN
+========================= */
 
-async function cargar(){
+async function cargarDashboard(){
 
 try{
 
-let ingR=await leer(URL_INGRESOS);
-let salR=await leer(URL_SALIDAS);
+document.getElementById("estado").innerText="🟢 Online";
 
-if(!ingR.length) return;
+let ingresosRaw = await leerSheet(URL_INGRESOS);
+let salidasRaw = await leerSheet(URL_SALIDAS);
 
-let hash=ingR.length+"-"+salR.length;
-if(hash==lastHash)return;
-lastHash=hash;
+/* HASH SIMPLE (evita re-render innecesario) */
+let hash = ingresosRaw.length + "-" + salidasRaw.length;
 
-/* INGRESOS HOY */
-let ingresos=ingR.filter(f=>esHoy(f[0]));
-let salidas=salR.filter(f=>esHoy(f[0]));
+if(hash === lastHash){
+return;
+}
+lastHash = hash;
+
+/* FILTRO HOY */
+let ingresos = ingresosRaw.filter(f=>esHoy(f[0]));
+let salidas = salidasRaw.filter(f=>esHoy(f[0]));
 
 /* CARDS */
-document.getElementById("ingresos").innerText=ingresos.length;
-document.getElementById("salidas").innerText=salidas.length;
+document.getElementById("ingresos").innerText = ingresos.length;
+document.getElementById("salidas").innerText = salidas.length;
 
-/* MOVIMIENTOS */
+document.getElementById("actualizado").innerText =
+new Date().toLocaleTimeString();
+
+/* RENDER */
+ultimosMovimientos(ingresos,salidas);
+contratistas(ingresos,salidas);
+proveedores(ingresos,salidas);
+
+}catch(e){
+document.getElementById("estado").innerText="🔴 Error";
+console.log(e);
+}
+
+}
+
+/* =========================
+   MOVIMIENTOS
+========================= */
+
+function ultimosMovimientos(ingresos,salidas){
+
 let mov=[];
 
 ingresos.forEach(f=>{
@@ -240,7 +378,7 @@ salidas.forEach(f=>{
 mov.push({h:f[0],n:f[3],r:f[4],t:"Salida"});
 });
 
-mov.sort((a,b)=>new Date(b.h)-new Date(a.h));
+mov.sort((a,b)=>convertirFecha(b.h)-convertirFecha(a.h));
 mov=mov.slice(0,10);
 
 document.getElementById("tabla").innerHTML=
@@ -249,53 +387,98 @@ mov.map(m=>`
 <td>${hora(m.h)}</td>
 <td>${m.n||"-"}</td>
 <td>${m.r||"-"}</td>
-<td>${m.t}</td>
+<td>${m.t==="Ingreso"
+?'<span class="badge-in">Ingreso</span>'
+:'<span class="badge-out">Salida</span>'}</td>
 </tr>
 `).join("");
+}
 
-/* ======================
-CONTRATISTAS Y PROVEEDORES
-====================== */
+/* =========================
+   CONTRATISTAS
+========================= */
 
-let contratistas=new Map();
-let proveedores=new Map();
+function contratistas(ingresos,salidas){
+
+let sal=new Set(salidas.map(x=>String(x[2]).trim()));
+let map=new Map();
+
+ingresos.forEach(f=>{
+if(String(f[4]).toUpperCase()==="CONTRATISTA"){
+let d=String(f[2]).trim();
+if(!sal.has(d)){
+map.set(d,{n:f[3],e:f[5]});
+}
+}
+});
+
+let activos=[...map.values()];
+
+document.getElementById("dentro").innerText=activos.length;
+
+document.getElementById("listaDentro").innerHTML=
+activos.length
+?activos.map(x=>`
+<div class="item">
+<strong>${x.n}</strong><br>${x.e||"-"}
+</div>`).join("")
+:"<div class='item'>Sin contratistas activos</div>";
+}
+function proveedores(ingresos,salidas){
+
+let sal=new Set(salidas.map(x=>String(x[2]).trim()));
+let map=new Map();
 
 ingresos.forEach(f=>{
 
-let rol=(f[4]||"").toUpperCase();
-let nombre=f[3];
-let entidad=f[5];
+if(String(f[4]||"").toUpperCase()==="PROVEEDOR"){
 
-if(rol.includes("CONTRAT")){
-contratistas.set(nombre,{nombre,entidad});
+let d=String(f[2]).trim();
+
+if(!sal.has(d)){
+
+map.set(d,{
+n:f[3],
+e:f[5]||"-"
+});
+
 }
 
-if(rol.includes("PROVE")){
-proveedores.set(nombre,{nombre,entidad});
 }
 
 });
 
-/* RENDER CONTRATISTAS */
-document.getElementById("listaContratistas").innerHTML=
-[...contratistas.values()].map(x=>
-`<div class="item"><b>${x.nombre}</b><br>${x.entidad||""}</div>`
-).join("") || "<div class='item'>Sin contratistas</div>";
+let activos=[...map.values()];
 
-/* RENDER PROVEEDORES */
 document.getElementById("listaProveedores").innerHTML=
-[...proveedores.values()].map(x=>
-`<div class="item"><b>${x.nombre}</b><br>${x.entidad||""}</div>`
-).join("") || "<div class='item'>Sin proveedores</div>";
+activos.length
+?activos.map(x=>`
+<div class="item">
+<strong>${x.n}</strong><br>
+${x.e}
+</div>`).join("")
+:"<div class='item'>Sin proveedores activos</div>";
+}
+/* =========================
+   RELOJ LOCAL
+========================= */
 
-}catch(e){
-console.log(e);
+function reloj(){
+document.getElementById("hora").innerText=
+new Date().toLocaleTimeString([],{
+hour:'2-digit',minute:'2-digit'
+});
 }
 
-}
+/* =========================
+   INICIO
+========================= */
 
-cargar();
-setInterval(cargar,5000);
+cargarDashboard();
+
+/* 🔥 optimizado */
+setInterval(cargarDashboard, 5000); // datos
+setInterval(reloj, 1000);           // reloj
 
 </script>
 
