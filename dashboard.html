@@ -9,6 +9,7 @@
       font-family: 'Segoe UI', Arial;
       margin:0;
       background:#eef2f7;
+      text-align:center;
     }
 
     .header{
@@ -17,8 +18,6 @@
       padding:18px;
       font-size:22px;
       font-weight:600;
-      text-align:center;
-      letter-spacing:0.5px;
     }
 
     .grid{
@@ -33,11 +32,6 @@
       border-radius:14px;
       padding:18px;
       box-shadow:0 6px 15px rgba(0,0,0,0.08);
-      transition:0.2s;
-    }
-
-    .card:hover{
-      transform:translateY(-3px);
     }
 
     .card h4{
@@ -65,11 +59,6 @@
       margin-top:20px;
     }
 
-    .section h3{
-      margin-bottom:10px;
-      color:#333;
-    }
-
     table{
       width:100%;
       border-collapse:collapse;
@@ -77,6 +66,7 @@
       border-radius:12px;
       overflow:hidden;
       box-shadow:0 4px 10px rgba(0,0,0,0.05);
+      text-align:center;
     }
 
     th{
@@ -92,10 +82,6 @@
       border-bottom:1px solid #eee;
     }
 
-    tr:hover{
-      background:#f5f7fa;
-    }
-
     .badge-ing{color:#2e7d32;font-weight:bold;}
     .badge-sal{color:#c62828;font-weight:bold;}
 
@@ -106,15 +92,13 @@
       padding:10px;
       margin:10px;
       border-radius:8px;
-      text-align:center;
     }
-
   </style>
 </head>
 
 <body>
 
-<div class="header">Control de Accesos - Dashboard</div>
+<div class="header">Control de Accesos - Hoy</div>
 
 <div id="errorBox" class="alerta">
   ⚠️ Error cargando datos
@@ -122,12 +106,12 @@
 
 <div class="grid">
   <div class="card">
-    <h4>Ingresos hoy</h4>
+    <h4>Ingresos</h4>
     <p class="ing" id="ingresos">0</p>
   </div>
 
   <div class="card">
-    <h4>Salidas hoy</h4>
+    <h4>Salidas</h4>
     <p class="sal" id="salidas">0</p>
   </div>
 
@@ -182,13 +166,15 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7
 
 let registros = [];
 
-/* FECHA */
+/* PARSE FECHA */
 function parseFecha(f){
   if(!f) return null;
+
   if(typeof f === "string" && f.includes("Date")){
     const p = f.match(/\d+/g);
     return new Date(p[0],p[1],p[2],p[3]||0,p[4]||0);
   }
+
   return new Date(f);
 }
 
@@ -203,7 +189,7 @@ function esHoy(f){
          f.getFullYear()==h.getFullYear();
 }
 
-/* CARGAR */
+/* CARGAR DATOS */
 async function cargarDatos(){
   try{
     const res = await fetch(SHEET_URL);
@@ -214,6 +200,7 @@ async function cargarDatos(){
 
     registros = json.table.rows.map(r=>{
       const c = (r.c||[]).map(x=>x?x.v:"");
+
       return {
         fecha: parseFecha(c[0]),
         tipo: c[1],
@@ -239,13 +226,22 @@ function procesar(){
   document.getElementById("ingresos").innerText = ingresos;
   document.getElementById("salidas").innerText = salidas;
 
+  // 🔥 último movimiento por persona
   const estado = {};
-  registros.forEach(r => estado[r.documento] = r);
+  registros.forEach(r => {
+    estado[r.documento] = r;
+  });
 
-  const dentro = Object.values(estado).filter(r=>r.tipo==="INGRESO");
+  const dentro = Object.values(estado)
+    .filter(r => r.tipo === "INGRESO");
 
-  const contratistas = dentro.filter(r=>r.rol==="CONTRATISTA");
-  const proveedores = dentro.filter(r=>r.rol==="PROVEEDOR");
+  const contratistas = dentro.filter(r => 
+    r.rol && r.rol.toUpperCase().includes("CONTRATISTA")
+  );
+
+  const proveedores = dentro.filter(r => 
+    r.rol && r.rol.toUpperCase().includes("PROVEEDOR")
+  );
 
   document.getElementById("contratistasCount").innerText = contratistas.length;
   document.getElementById("proveedoresCount").innerText = proveedores.length;
@@ -254,10 +250,15 @@ function procesar(){
   renderMovimientos();
 }
 
-/* TABLA CONTRATISTAS */
+/* CONTRATISTAS DENTRO */
 function renderContratistas(lista){
   const t = document.getElementById("tablaContratistas");
   t.innerHTML = "";
+
+  if(lista.length === 0){
+    t.innerHTML = "<tr><td colspan='3'>Sin contratistas dentro</td></tr>";
+    return;
+  }
 
   lista.forEach(p=>{
     t.innerHTML += `
@@ -270,7 +271,7 @@ function renderContratistas(lista){
   });
 }
 
-/* MOVIMIENTOS */
+/* ÚLTIMOS MOVIMIENTOS */
 function renderMovimientos(){
   const t = document.getElementById("tablaMovimientos");
   t.innerHTML = "";
@@ -293,7 +294,7 @@ function renderMovimientos(){
   });
 }
 
-/* REFRESH */
+/* REFRESH AUTOMÁTICO */
 setInterval(cargarDatos,30000);
 cargarDatos();
 
