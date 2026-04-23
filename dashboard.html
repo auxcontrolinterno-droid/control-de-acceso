@@ -139,26 +139,52 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7
 let registros = [];
 
 async function cargarDatos(){
-  const res = await fetch(SHEET_URL);
-  const text = await res.text();
-  const json = JSON.parse(text.substring(47).slice(0,-2));
+  try{
+    const res = await fetch(SHEET_URL);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0,-2));
 
-  registros = json.table.rows.map(r => {
-    const c = (r.c || []).map(x => x ? x.v : "");
+    registros = json.table.rows.map(r => {
+      const c = (r.c || []).map(x => x ? x.v : "");
 
-    return {
-      tipo: c[0], // INGRESO / SALIDA
-      rol: c[1],
-      nombre: c[2],
-      documento: c[3],
-      fecha: c[4]
-    }
-  });
+      return {
+        tipo: c[1], // INGRESO / SALIDA
+        rol: c[2],
+        nombre: c[3],
+        documento: c[4],
+        fecha: formatearFecha(c[0])
+      }
+    });
 
-  procesar();
+    procesar();
+
+  }catch(e){
+    alert("Error cargando datos");
+  }
 }
 
+/* FORMATEAR FECHA BONITA */
+function formatearFecha(fechaRaw){
+
+  if(!fechaRaw) return "";
+
+  if(typeof fechaRaw === "string" && fechaRaw.includes("Date")){
+    const partes = fechaRaw.match(/\d+/g);
+    return new Date(
+      partes[0],
+      partes[1],
+      partes[2],
+      partes[3] || 0,
+      partes[4] || 0
+    ).toLocaleString();
+  }
+
+  return new Date(fechaRaw).toLocaleString();
+}
+
+/* PROCESAR CONTADORES */
 function procesar(){
+
   let ingresos = registros.filter(r => r.tipo === "INGRESO").length;
   let salidas = registros.filter(r => r.tipo === "SALIDA").length;
 
@@ -170,7 +196,9 @@ function procesar(){
   renderGrafico();
 }
 
+/* TABLA */
 function renderTabla(){
+
   const filtro = document.getElementById("filtroRol").value;
 
   let data = registros;
@@ -195,6 +223,7 @@ function renderTabla(){
   });
 }
 
+/* GRAFICO */
 function renderGrafico(){
 
   const roles = {
@@ -220,6 +249,9 @@ function renderGrafico(){
     }
   });
 }
+
+/* AUTO REFRESH (cada 30 segundos) */
+setInterval(cargarDatos, 30000);
 
 cargarDatos();
 
