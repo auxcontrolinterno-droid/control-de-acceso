@@ -17,6 +17,14 @@ const URL_SALIDAS =
 let lastHash = "";
 
 /* =========================
+   HELPERS
+========================= */
+
+function safe(v){
+return (v ?? "").toString().trim();
+}
+
+/* =========================
    API SHEETS
 ========================= */
 
@@ -31,7 +39,7 @@ return json.table.rows.map(r =>
 }
 
 /* =========================
-   FECHAS ROBUSTAS
+   FECHA
 ========================= */
 
 function convertirFecha(v){
@@ -57,7 +65,7 @@ return null;
 }
 
 /* =========================
-   HOY (🔥 CORREGIDO)
+   HOY (IMPORTANTE)
 ========================= */
 
 function esHoy(v){
@@ -85,7 +93,7 @@ hour:'2-digit',minute:'2-digit'
 }
 
 /* =========================
-   DASHBOARD MAIN
+   DASHBOARD
 ========================= */
 
 async function cargarDashboard(){
@@ -97,15 +105,13 @@ document.getElementById("estado").innerText="🟢 Online";
 let ingresosRaw = await leerSheet(URL_INGRESOS);
 let salidasRaw = await leerSheet(URL_SALIDAS);
 
-/* evita renders innecesarios */
 let hash = ingresosRaw.length + "-" + salidasRaw.length;
 
 if(hash === lastHash) return;
 lastHash = hash;
 
 /* =========================
-   🔥 CORRECCIÓN CRÍTICA:
-   fecha está en f[10]
+   🔥 FECHA CORRECTA = f[10]
 ========================= */
 
 let ingresos = ingresosRaw.filter(f => esHoy(f[10]));
@@ -141,8 +147,8 @@ let mov=[];
 ingresos.forEach(f=>{
 mov.push({
 h: f[9],
-n: f[0],
-r: f[2],
+n: safe(f[0]),
+r: safe(f[2]) || "Sin rol",
 t: "Ingreso"
 });
 });
@@ -151,8 +157,8 @@ t: "Ingreso"
 salidas.forEach(f=>{
 mov.push({
 h: f[9],
-n: f[0],
-r: f[2],
+n: safe(f[0]),
+r: safe(f[2]) || "Sin rol",
 t: "Salida"
 });
 });
@@ -164,8 +170,8 @@ document.getElementById("tabla").innerHTML =
 mov.map(m=>`
 <tr>
 <td>${hora(m.h)}</td>
-<td>${m.n || "-"}</td>
-<td>${m.r || "-"}</td>
+<td>${m.n}</td>
+<td>${m.r}</td>
 <td>${
 m.t === "Ingreso"
 ? '<span class="badge-in">Ingreso</span>'
@@ -182,21 +188,20 @@ m.t === "Ingreso"
 
 function contratistas(ingresos, salidas){
 
-let sal = new Set(salidas.map(x => String(x[1]).trim()));
+let sal = new Set(salidas.map(x => safe(x[1])));
 let map = new Map();
 
 /* INGRESOS */
 ingresos.forEach(f=>{
 
-/* rol = f[2] */
 if(String(f[2]).toUpperCase() === "CONTRATISTA"){
 
-let doc = String(f[1]).trim();
+let doc = safe(f[1]);
 
 if(!sal.has(doc)){
 map.set(doc,{
-n: f[0],
-e: f[5]
+n: safe(f[0]),
+e: safe(f[5])
 });
 }
 
