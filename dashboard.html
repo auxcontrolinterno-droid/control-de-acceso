@@ -1,78 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Dashboard Control</title>
+
+<style>
+body{font-family:Arial;background:#f5f6fa;padding:20px}
+.box{background:white;padding:15px;margin-bottom:10px;border-radius:10px}
+table{width:100%;border-collapse:collapse}
+td,th{border:1px solid #ddd;padding:5px}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>📊 Dashboard Control de Acceso</h2>
+<div id="estado">Cargando...</div>
+</div>
+
+<div class="box">
+📥 Ingresos hoy: <b id="ingresos">0</b><br>
+📤 Salidas hoy: <b id="salidas">0</b>
+</div>
+
+<div class="box">
+<table>
+<thead>
+<tr>
+<th>Hora</th>
+<th>Nombre</th>
+<th>Rol</th>
+<th>Tipo</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
+</div>
+
 <script>
 
-document.addEventListener("DOMContentLoaded", () => {
-  init();
-});
-
 /* =========================
-   CONFIG
+   SHEETS (INGRESOS / SALIDAS)
 ========================= */
 
-const INGRESOS_URL =
-"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+const URL_INGRESOS =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964";
 
-const SALIDAS_URL =
-"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
-
-const $ = id => document.getElementById(id);
+const URL_SALIDAS =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943";
 
 /* =========================
-   INIT
+   SAFE PARSER
 ========================= */
 
-function init(){
-
-  renderBase();
-
-  load();
-
-  setInterval(load, 6000);
-  setInterval(clock, 1000);
-
-}
-
-/* =========================
-   UI BASE
-========================= */
-
-function renderBase(){
-
-  document.body.innerHTML = `
-    <div style="font-family:Arial;padding:20px">
-
-      <h2>📊 Control de Acceso</h2>
-
-      <div id="estado">Cargando...</div>
-
-      <p>Ingresos: <b id="ingresos">0</b></p>
-      <p>Salidas: <b id="salidas">0</b></p>
-
-      <p>Actualizado: <span id="actualizado">--</span></p>
-
-      <hr>
-
-      <table border="1" width="100%">
-        <thead>
-          <tr>
-            <th>Hora</th>
-            <th>Nombre</th>
-            <th>Rol</th>
-            <th>Tipo</th>
-          </tr>
-        </thead>
-        <tbody id="tabla"></tbody>
-      </table>
-
-    </div>
-  `;
-
-}
-
-/* =========================
-   FETCH SAFE
-========================= */
-
-async function fetchSheet(url){
+async function readSheet(url){
 
   try{
 
@@ -81,37 +63,34 @@ async function fetchSheet(url){
 
     const json = JSON.parse(t.substring(47).slice(0,-2));
 
-    return json.table.rows.map(r => {
+    return (json.table.rows || []).map(r=>{
       const c = (r.c || []).map(x => x ? x.v : "");
+
       return {
-        nombre: c[0],
-        doc: c[1],
-        rol: c[2],
-        hora: c[9],
-        fecha: c[10]
+        nombre:c[0],
+        doc:c[1],
+        rol:c[2],
+        hora:c[9],
+        fecha:c[10]
       };
+
     });
 
   }catch(e){
-    console.error(e);
+    console.log("ERROR:", e);
     return [];
   }
 
 }
 
 /* =========================
-   DATE
+   FECHA HOY
 ========================= */
 
-function parseDate(v){
-  if(!v) return null;
-  const d = new Date(v);
-  return isNaN(d) ? null : d;
-}
-
 function isToday(v){
-  const d = parseDate(v);
-  if(!d) return false;
+  if(!v) return false;
+  const d = new Date(v);
+  if(isNaN(d)) return false;
 
   const n = new Date();
 
@@ -120,11 +99,18 @@ function isToday(v){
          d.getFullYear()==n.getFullYear();
 }
 
-function time(v){
-  const d = parseDate(v);
-  if(!d) return "--";
+/* =========================
+   HORA
+========================= */
 
-  return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+function time(v){
+  const d = new Date(v);
+  if(isNaN(d)) return "--";
+
+  return d.toLocaleTimeString([],{
+    hour:"2-digit",
+    minute:"2-digit"
+  });
 }
 
 /* =========================
@@ -135,74 +121,52 @@ async function load(){
 
   try{
 
-    const ingresosRaw = await fetchSheet(INGRESOS_URL);
-    const salidasRaw = await fetchSheet(SALIDAS_URL);
+    const ingresosRaw = await readSheet(URL_INGRESOS);
+    const salidasRaw = await readSheet(URL_SALIDAS);
 
-    const ingresos = ingresosRaw.filter(x => isToday(x.fecha));
-    const salidas = salidasRaw.filter(x => isToday(x.fecha));
+    const ingresos = ingresosRaw.filter(x=>isToday(x.fecha));
+    const salidas = salidasRaw.filter(x=>isToday(x.fecha));
 
-    $("ingresos").innerText = ingresos.length;
-    $("salidas").innerText = salidas.length;
+    document.getElementById("ingresos").innerText = ingresos.length;
+    document.getElementById("salidas").innerText = salidas.length;
 
-    $("actualizado").innerText = new Date().toLocaleTimeString();
+    let mov = [];
 
-    renderTable(ingresos, salidas);
+    ingresos.forEach(x=>{
+      mov.push({...x, tipo:"Ingreso"});
+    });
 
-    $("estado").innerText = "🟢 Online";
+    salidas.forEach(x=>{
+      mov.push({...x, tipo:"Salida"});
+    });
+
+    mov = mov.slice(0,10);
+
+    document.getElementById("tabla").innerHTML =
+    mov.map(m=>`
+      <tr>
+        <td>${time(m.hora)}</td>
+        <td>${m.nombre}</td>
+        <td>${m.rol}</td>
+        <td>${m.tipo}</td>
+      </tr>
+    `).join("");
+
+    document.getElementById("estado").innerText = "🟢 Online";
 
   }catch(e){
-    console.error(e);
-    $("estado").innerText = "🔴 Error";
+
+    console.log(e);
+    document.getElementById("estado").innerText = "🔴 Error";
+
   }
 
 }
 
-/* =========================
-   TABLE
-========================= */
-
-function renderTable(ingresos, salidas){
-
-  let mov = [];
-
-  ingresos.forEach(x=>{
-    mov.push({
-      h:x.hora,
-      n:x.nombre,
-      r:x.rol,
-      t:"Ingreso"
-    });
-  });
-
-  salidas.forEach(x=>{
-    mov.push({
-      h:x.hora,
-      n:x.nombre,
-      r:x.rol,
-      t:"Salida"
-    });
-  });
-
-  mov.sort((a,b)=> new Date(b.h)-new Date(a.h));
-  mov = mov.slice(0,10);
-
-  $("tabla").innerHTML = mov.map(m=>`
-    <tr>
-      <td>${time(m.h)}</td>
-      <td>${m.n}</td>
-      <td>${m.r}</td>
-      <td>${m.t}</td>
-    </tr>
-  `).join("");
-
-}
-
-/* =========================
-   CLOCK
-========================= */
-
-function clock(){
-  $("actualizado").innerText = new Date().toLocaleTimeString();
-}
+load();
+setInterval(load,5000);
 
 </script>
+
+</body>
+</html>
