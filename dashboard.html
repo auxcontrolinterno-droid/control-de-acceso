@@ -1,326 +1,444 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Dashboard Accesos</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard Seguridad Altamira</title>
 
-  <style>
-    body{
-      font-family: 'Segoe UI', Arial;
-      margin:0;
-      background:#eef2f7;
-      text-align:center;
-    }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-    .header{
-      background:#0b3d91;
-      color:white;
-      padding:18px;
-      font-size:22px;
-      font-weight:600;
-    }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
 
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap:15px;
-      padding:20px;
-    }
+body{
+font-family:'Inter',sans-serif;
+background:linear-gradient(135deg,#eef2f7,#dde6f1);
+color:#111;
+}
 
-    .card{
-      background:white;
-      border-radius:14px;
-      padding:18px;
-      box-shadow:0 6px 15px rgba(0,0,0,0.08);
-    }
+/* HEADER */
+.header{
+background:#fff;
+padding:18px;
+text-align:center;
+border-bottom:3px solid #0b3d91;
+}
 
-    .card h4{
-      margin:0;
-      font-size:13px;
-      color:#666;
-    }
+.header img{width:180px;max-width:80%;}
 
-    .card p{
-      margin-top:10px;
-      font-size:28px;
-      font-weight:bold;
-    }
+.header h1{
+margin-top:10px;
+font-size:24px;
+color:#0b3d91;
+}
 
-    .ing{ color:#2e7d32; }
-    .sal{ color:#c62828; }
-    .con{ color:#1565c0; }
-    .pro{ color:#ef6c00; }
+/* WRAP */
+.wrap{
+width:95%;
+max-width:1300px;
+margin:auto;
+padding:25px 0;
+}
 
-    .container{
-      padding:0 20px 30px;
-    }
+/* CARDS */
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+margin-bottom:25px;
+}
 
-    .section{
-      margin-top:20px;
-    }
+.card{
+background:#fff;
+padding:20px;
+border-radius:18px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+transition:.2s;
+}
 
-    table{
-      width:100%;
-      border-collapse:collapse;
-      background:white;
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow:0 4px 10px rgba(0,0,0,0.05);
-      text-align:center;
-    }
+.card:hover{
+transform:translateY(-3px);
+}
 
-    th{
-      background:#0b3d91;
-      color:white;
-      padding:10px;
-      font-size:13px;
-    }
+.card small{
+display:block;
+color:#666;
+margin-bottom:8px;
+font-size:13px;
+}
 
-    td{
-      padding:10px;
-      font-size:13px;
-      border-bottom:1px solid #eee;
-    }
+.card h2{
+font-size:34px;
+color:#0b3d91;
+}
 
-    .badge-ing{color:#2e7d32;font-weight:bold;}
-    .badge-sal{color:#c62828;font-weight:bold;}
+/* GRID */
+.grid{
+display:grid;
+grid-template-columns:1.3fr .7fr;
+gap:18px;
+}
 
-    .alerta{
-      display:none;
-      background:#fff3cd;
-      color:#856404;
-      padding:10px;
-      margin:10px;
-      border-radius:8px;
-    }
-  </style>
+.panel{
+background:#fff;
+padding:20px;
+border-radius:18px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.panel h3{
+margin-bottom:15px;
+color:#0b3d91;
+}
+
+/* TABLE */
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th{
+background:#0b3d91;
+color:#fff;
+padding:12px;
+font-size:13px;
+text-align:left;
+}
+
+td{
+padding:11px;
+border-bottom:1px solid #eee;
+font-size:14px;
+}
+
+.badge-in{
+background:#dcfce7;
+color:#15803d;
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:700;
+}
+
+.badge-out{
+background:#fee2e2;
+color:#b91c1c;
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:700;
+}
+
+/* LISTA */
+.lista{
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.item{
+background:#f8fafc;
+padding:14px;
+border-radius:14px;
+font-size:14px;
+transition:.2s;
+}
+
+.item:hover{
+transform:scale(1.02);
+background:#eef5ff;
+}
+
+/* FOOTER */
+.footer{
+text-align:center;
+margin-top:20px;
+font-size:12px;
+color:#666;
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+.grid{grid-template-columns:1fr;}
+}
+</style>
 </head>
 
 <body>
 
-<div class="header">Control de Accesos - Hoy</div>
-
-<div id="errorBox" class="alerta">
-  ⚠️ Error cargando datos
+<div class="header">
+<img src="https://i.imgur.com/OB279U8.jpeg">
+<h1>Dashboard de Seguridad</h1>
 </div>
 
+<div class="wrap">
+
+<!-- CARDS -->
+<div class="cards">
+
+<div class="card">
+<small>Ingresos Hoy</small>
+<h2 id="ingresos">0</h2>
+</div>
+
+<div class="card">
+<small>Salidas Hoy</small>
+<h2 id="salidas">0</h2>
+</div>
+
+<div class="card">
+<small>Contratistas Dentro</small>
+<h2 id="dentro">0</h2>
+</div>
+
+<div class="card">
+<small>Estado Sistema</small>
+<h2 id="estado">🟡 Cargando</h2>
+</div>
+
+<div class="card">
+<small>Hora Actual</small>
+<h2 id="hora" style="font-size:20px;">--:--</h2>
+</div>
+
+<div class="card">
+<small>Última Sync</small>
+<h2 id="actualizado" style="font-size:18px;">--</h2>
+</div>
+
+</div>
+
+<!-- GRID -->
 <div class="grid">
-  <div class="card">
-    <h4>Ingresos</h4>
-    <p class="ing" id="ingresos">0</p>
-  </div>
 
-  <div class="card">
-    <h4>Salidas</h4>
-    <p class="sal" id="salidas">0</p>
-  </div>
+<div class="panel">
+<h3>Últimos Movimientos</h3>
 
-  <div class="card">
-    <h4>Contratistas dentro</h4>
-    <p class="con" id="contratistasCount">0</p>
-  </div>
-
-  <div class="card">
-    <h4>Proveedores dentro</h4>
-    <p class="pro" id="proveedoresCount">0</p>
-  </div>
-</div>
-
-<div class="container">
-
-<div class="section">
-<h3>🟢 Contratistas dentro</h3>
 <table>
 <thead>
 <tr>
-<th>Nombre</th>
-<th>Documento</th>
-<th>Hora ingreso</th>
-</tr>
-</thead>
-<tbody id="tablaContratistas"></tbody>
-</table>
-</div>
-
-<div class="section">
-<h3>📋 Últimos movimientos</h3>
-<table>
-<thead>
-<tr>
-<th>Nombre</th>
-<th>Documento</th>
-<th>Rol</th>
-<th>Estado</th>
 <th>Hora</th>
+<th>Nombre</th>
+<th>Rol</th>
+<th>Movimiento</th>
 </tr>
 </thead>
-<tbody id="tablaMovimientos"></tbody>
+<tbody id="tabla"></tbody>
 </table>
+</div>
+
+<div class="panel">
+<h3>Contratistas Dentro</h3>
+<div class="lista" id="listaDentro"></div>
+</div>
+
 </div>
 
 </div>
 
 <script>
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?tqx=out:json";
+/* =========================
+   CONFIG
+========================= */
 
-let registros = [];
+const URL_INGRESOS =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
-/* LIMPIAR TEXTO */
-function limpiar(t){
-  return String(t || "").trim().toUpperCase();
+const URL_SALIDAS =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
+
+/* =========================
+   CACHE (evita renders inútiles)
+========================= */
+
+let lastHash = "";
+
+/* =========================
+   API SHEETS
+========================= */
+
+async function leerSheet(url){
+const res = await fetch(url);
+const txt = await res.text();
+const json = JSON.parse(txt.substring(47).slice(0,-2));
+
+return json.table.rows.map(r =>
+(r.c || []).map(x => x ? x.v : "")
+);
 }
 
-/* FECHA */
-function parseFecha(f){
-  if(!f) return null;
+/* =========================
+   FECHAS ROBUSTAS
+========================= */
 
-  if(typeof f === "string" && f.includes("Date")){
-    const p = f.match(/\d+/g);
-    return new Date(p[0],p[1],p[2],p[3]||0,p[4]||0);
-  }
+function convertirFecha(v){
+if(!v) return null;
 
-  return new Date(f);
+if(v instanceof Date) return v;
+
+if(typeof v === "number"){
+return new Date(Math.round((v - 25569) * 86400 * 1000));
 }
 
-function soloHora(d){
-  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+if(typeof v === "string"){
+const d = new Date(v);
+if(!isNaN(d)) return d;
 }
 
-function esHoy(f){
-  const h = new Date();
-  return f.getDate()==h.getDate() &&
-         f.getMonth()==h.getMonth() &&
-         f.getFullYear()==h.getFullYear();
+if(typeof v==="string" && v.includes("Date(")){
+const n=v.match(/\d+/g).map(Number);
+return new Date(n[0],n[1],n[2],n[3]||0,n[4]||0,n[5]||0);
 }
 
-/* CARGAR DATOS */
-async function cargarDatos(){
-  try{
-    const res = await fetch(SHEET_URL + "&nocache=" + new Date().getTime());
-    const text = await res.text();
-    const json = JSON.parse(text.substring(47).slice(0,-2));
-
-    registros = json.table.rows.map(r=>{
-      const c = (r.c||[]).map(x=>x?x.v:"");
-
-      let fecha = null;
-      let tipo = "";
-      let documento = "";
-      let nombre = "";
-      let rol = "";
-
-      c.forEach(v => {
-
-        const val = limpiar(v);
-
-        if(String(v).includes("Date")){
-          fecha = parseFecha(v);
-        }
-
-        if(val.includes("INGRESO")) tipo = "INGRESO";
-        if(val.includes("SALIDA")) tipo = "SALIDA";
-
-        if(val.includes("CONTRATISTA")) rol = "CONTRATISTA";
-        if(val.includes("PROVEEDOR")) rol = "PROVEEDOR";
-        if(val.includes("VISITANTE")) rol = "VISITANTE";
-
-        if(/^\d{5,}$/.test(val)) documento = val;
-
-        if(val.includes(" ") && !nombre && isNaN(val)){
-          nombre = v;
-        }
-
-      });
-
-      return { fecha, tipo, documento, nombre, rol };
-
-    }).filter(r => r.fecha && esHoy(r.fecha));
-
-    procesar();
-
-  }catch(e){
-    console.error("Error:", e);
-  }
+return null;
 }
 
-/* PROCESAR */
-function procesar(){
+function esHoy(v){
+const f=convertirFecha(v);
+if(!f) return false;
 
-  let ingresos = registros.filter(r => r.tipo === "INGRESO").length;
-  let salidas = registros.filter(r => r.tipo === "SALIDA").length;
-
-  document.getElementById("ingresos").innerText = ingresos;
-  document.getElementById("salidas").innerText = salidas;
-
-  const estado = {};
-
-  registros.forEach(r=>{
-    if(r.documento){
-      estado[r.documento] = r;
-    }
-  });
-
-  const dentro = Object.values(estado)
-    .filter(r => r.tipo === "INGRESO");
-
-  const contratistas = dentro.filter(r => r.rol === "CONTRATISTA");
-  const proveedores = dentro.filter(r => r.rol === "PROVEEDOR");
-
-  document.getElementById("contratistasCount").innerText = contratistas.length;
-  document.getElementById("proveedoresCount").innerText = proveedores.length;
-
-  renderContratistas(contratistas);
-  renderMovimientos();
+const h=new Date();
+return f.getDate()===h.getDate() &&
+f.getMonth()===h.getMonth() &&
+f.getFullYear()===h.getFullYear();
 }
 
-/* CONTRATISTAS */
-function renderContratistas(lista){
-  const t = document.getElementById("tablaContratistas");
-  t.innerHTML = "";
+function hora(v){
+const f=convertirFecha(v);
+if(!f) return "--";
 
-  if(lista.length === 0){
-    t.innerHTML = "<tr><td colspan='3'>Sin contratistas dentro</td></tr>";
-    return;
-  }
-
-  lista.forEach(p=>{
-    t.innerHTML += `
-      <tr>
-        <td>${p.nombre}</td>
-        <td>${p.documento}</td>
-        <td>${soloHora(p.fecha)}</td>
-      </tr>
-    `;
-  });
+return f.toLocaleTimeString([],{
+hour:'2-digit',minute:'2-digit'
+});
 }
 
-/* MOVIMIENTOS */
-function renderMovimientos(){
-  const t = document.getElementById("tablaMovimientos");
-  t.innerHTML = "";
+/* =========================
+   DASHBOARD MAIN
+========================= */
 
-  registros.slice().reverse().slice(0,20).forEach(r=>{
+async function cargarDashboard(){
 
-    const estado = r.tipo === "INGRESO"
-      ? '<span style="color:green">🟢 Ingresó</span>'
-      : '<span style="color:red">🔴 Salió</span>';
+try{
 
-    t.innerHTML += `
-      <tr>
-        <td>${r.nombre}</td>
-        <td>${r.documento}</td>
-        <td>${r.rol}</td>
-        <td>${estado}</td>
-        <td>${soloHora(r.fecha)}</td>
-      </tr>
-    `;
-  });
+document.getElementById("estado").innerText="🟢 Online";
+
+let ingresosRaw = await leerSheet(URL_INGRESOS);
+let salidasRaw = await leerSheet(URL_SALIDAS);
+
+/* HASH SIMPLE (evita re-render innecesario) */
+let hash = ingresosRaw.length + "-" + salidasRaw.length;
+
+if(hash === lastHash){
+return;
+}
+lastHash = hash;
+
+/* FILTRO HOY */
+let ingresos = ingresosRaw.filter(f=>esHoy(f[0]));
+let salidas = salidasRaw.filter(f=>esHoy(f[0]));
+
+/* CARDS */
+document.getElementById("ingresos").innerText = ingresos.length;
+document.getElementById("salidas").innerText = salidas.length;
+
+document.getElementById("actualizado").innerText =
+new Date().toLocaleTimeString();
+
+/* RENDER */
+ultimosMovimientos(ingresos,salidas);
+contratistas(ingresos,salidas);
+
+}catch(e){
+document.getElementById("estado").innerText="🔴 Error";
+console.log(e);
 }
 
-/* REFRESH */
-setInterval(cargarDatos, 10000);
-cargarDatos();
+}
+
+/* =========================
+   MOVIMIENTOS
+========================= */
+
+function ultimosMovimientos(ingresos,salidas){
+
+let mov=[];
+
+ingresos.forEach(f=>{
+mov.push({h:f[0],n:f[3],r:f[4],t:"Ingreso"});
+});
+
+salidas.forEach(f=>{
+mov.push({h:f[0],n:f[3],r:f[5],t:"Salida"});
+});
+
+mov.sort((a,b)=>convertirFecha(b.h)-convertirFecha(a.h));
+mov=mov.slice(0,10);
+
+document.getElementById("tabla").innerHTML=
+mov.map(m=>`
+<tr>
+<td>${hora(m.h)}</td>
+<td>${m.n||"-"}</td>
+<td>${m.r||"-"}</td>
+<td>${m.t==="Ingreso"
+?'<span class="badge-in">Ingreso</span>'
+:'<span class="badge-out">Salida</span>'}</td>
+</tr>
+`).join("");
+}
+
+/* =========================
+   CONTRATISTAS
+========================= */
+
+function contratistas(ingresos,salidas){
+
+let sal=new Set(salidas.map(x=>String(x[2]).trim()));
+let map=new Map();
+
+ingresos.forEach(f=>{
+if(String(f[4]).toUpperCase()==="CONTRATISTA"){
+let d=String(f[2]).trim();
+if(!sal.has(d)){
+map.set(d,{n:f[3],e:f[5]});
+}
+}
+});
+
+let activos=[...map.values()];
+
+document.getElementById("dentro").innerText=activos.length;
+
+document.getElementById("listaDentro").innerHTML=
+activos.length
+?activos.map(x=>`
+<div class="item">
+<strong>${x.n}</strong><br>${x.e||"-"}
+</div>`).join("")
+:"<div class='item'>Sin contratistas activos</div>";
+}
+
+/* =========================
+   RELOJ LOCAL
+========================= */
+
+function reloj(){
+document.getElementById("hora").innerText=
+new Date().toLocaleTimeString([],{
+hour:'2-digit',minute:'2-digit'
+});
+}
+
+/* =========================
+   INICIO
+========================= */
+
+cargarDashboard();
+
+/* 🔥 optimizado */
+setInterval(cargarDashboard, 5000); // datos
+setInterval(reloj, 1000);           // reloj
 
 </script>
 
