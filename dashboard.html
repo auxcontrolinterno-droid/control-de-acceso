@@ -1,35 +1,339 @@
-function proveedores(ingresos,salidas){
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard Seguridad Altamira</title>
 
-let sal=new Set(salidas.map(x=>String(x[2]).trim()));
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+font-family:'Inter',sans-serif;
+background:linear-gradient(135deg,#eef2f7,#dde6f1);
+color:#111;
+}
+
+.header{
+background:#fff;
+padding:18px;
+text-align:center;
+border-bottom:3px solid #0b3d91;
+}
+
+.header img{width:180px;max-width:80%;}
+
+.header h1{
+margin-top:10px;
+font-size:24px;
+color:#0b3d91;
+}
+
+.wrap{
+width:95%;
+max-width:1300px;
+margin:auto;
+padding:25px 0;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+margin-bottom:25px;
+}
+
+.card{
+background:#fff;
+padding:20px;
+border-radius:18px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.card small{color:#666;font-size:13px;}
+
+.card h2{
+font-size:34px;
+color:#0b3d91;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1.3fr .7fr;
+gap:18px;
+}
+
+.panel{
+background:#fff;
+padding:20px;
+border-radius:18px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th{
+background:#0b3d91;
+color:#fff;
+padding:10px;
+text-align:left;
+}
+
+td{
+padding:10px;
+border-bottom:1px solid #eee;
+}
+
+.badge-in{
+background:#dcfce7;
+color:#15803d;
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+}
+
+.badge-out{
+background:#fee2e2;
+color:#b91c1c;
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+}
+
+.lista{
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.item{
+background:#f8fafc;
+padding:12px;
+border-radius:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<img src="https://i.imgur.com/OB279U8.jpeg">
+<h1>Dashboard de Seguridad</h1>
+</div>
+
+<div class="wrap">
+
+<div class="cards">
+
+<div class="card">
+<small>Ingresos Hoy</small>
+<h2 id="ingresos">0</h2>
+</div>
+
+<div class="card">
+<small>Salidas Hoy</small>
+<h2 id="salidas">0</h2>
+</div>
+
+<div class="card">
+<small>Contratistas Dentro</small>
+<h2 id="dentro">0</h2>
+</div>
+
+<div class="card">
+<small>Estado</small>
+<h2 id="estado">🟡 Cargando</h2>
+</div>
+
+<div class="card">
+<small>Hora</small>
+<h2 id="hora">--:--</h2>
+</div>
+
+<div class="card">
+<small>Última Sync</small>
+<h2 id="actualizado">--</h2>
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="panel">
+<h3>Últimos Movimientos</h3>
+<table>
+<thead>
+<tr>
+<th>Hora</th>
+<th>Nombre</th>
+<th>Rol</th>
+<th>Movimiento</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
+</div>
+
+<div class="panel">
+<h3>Contratistas Dentro</h3>
+<div class="lista" id="listaDentro"></div>
+
+<h3 style="margin-top:15px;">Proveedores Dentro</h3>
+<div class="lista" id="listaProveedores"></div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const URL_INGRESOS="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+const URL_SALIDAS="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
+
+let lastHash="";
+
+async function leer(url){
+const r=await fetch(url);
+const t=await r.text();
+const j=JSON.parse(t.substring(47).slice(0,-2));
+return j.table.rows.map(r=>(r.c||[]).map(x=>x?x.v:""));
+}
+
+function fecha(v){
+if(!v) return null;
+if(v instanceof Date) return v;
+if(typeof v==="number") return new Date((v-25569)*86400*1000);
+return new Date(v);
+}
+
+function hoy(v){
+let f=fecha(v);
+let h=new Date();
+return f.getDate()==h.getDate()&&f.getMonth()==h.getMonth()&&f.getFullYear()==h.getFullYear();
+}
+
+function hora(v){
+let f=fecha(v);
+return f?f.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):"--";
+}
+
+async function cargar(){
+
+try{
+
+document.getElementById("estado").innerText="🟢 Online";
+
+let ingR=await leer(URL_INGRESOS);
+let salR=await leer(URL_SALIDAS);
+
+let hash=ingR.length+"-"+salR.length;
+if(hash==lastHash)return;
+lastHash=hash;
+
+let ingresos=ingR.filter(f=>hoy(f[0]));
+let salidas=salR.filter(f=>hoy(f[0]));
+
+document.getElementById("ingresos").innerText=ingresos.length;
+document.getElementById("salidas").innerText=salidas.length;
+document.getElementById("actualizado").innerText=new Date().toLocaleTimeString();
+
+mov(ingresos,salidas);
+contratistas(ingresos,salidas);
+proveedores(ingresos,salidas);
+
+}catch(e){
+document.getElementById("estado").innerText="🔴 Error";
+console.log(e);
+}
+
+}
+
+function mov(ing,sal){
+
+let m=[];
+
+ing.forEach(f=>m.push({h:f[0],n:f[3],r:f[4],t:"Ingreso"}));
+sal.forEach(f=>m.push({h:f[0],n:f[3],r:f[4],t:"Salida"}));
+
+m.sort((a,b)=>fecha(b.h)-fecha(a.h));
+m=m.slice(0,10);
+
+document.getElementById("tabla").innerHTML=
+m.map(x=>`
+<tr>
+<td>${hora(x.h)}</td>
+<td>${x.n}</td>
+<td>${x.r}</td>
+<td>${x.t=="Ingreso"
+?'<span class="badge-in">Ingreso</span>'
+:'<span class="badge-out">Salida</span>'}</td>
+</tr>
+`).join("");
+
+}
+
+function contratistas(ing,sal){
+
+let salidas=new Set(sal.map(x=>String(x[2]).trim()));
 let map=new Map();
 
-ingresos.forEach(f=>{
-
-if(String(f[4]||"").toUpperCase()==="PROVEEDOR"){
-
+ing.forEach(f=>{
+if(String(f[4]).toUpperCase()=="CONTRATISTA"){
 let d=String(f[2]).trim();
-
-if(!sal.has(d)){
-
-map.set(d,{
-n:f[3],
-e:f[5]||"-"
+if(!salidas.has(d)){
+map.set(d,{n:f[3],e:f[5]});
+}
+}
 });
+
+let a=[...map.values()];
+
+document.getElementById("dentro").innerText=a.length;
+
+document.getElementById("listaDentro").innerHTML=
+a.length?a.map(x=>`<div class="item"><b>${x.n}</b><br>${x.e}</div>`).join("")
+:"<div class='item'>Sin contratistas</div>";
 
 }
 
-}
+function proveedores(ing,sal){
 
+let salidas=new Set(sal.map(x=>String(x[2]).trim()));
+let map=new Map();
+
+ing.forEach(f=>{
+if(String(f[4]).toUpperCase()=="PROVEEDOR"){
+let d=String(f[2]).trim();
+if(!salidas.has(d)){
+map.set(d,{n:f[3],e:f[5]});
+}
+}
 });
 
-let activos=[...map.values()];
+let a=[...map.values()];
 
 document.getElementById("listaProveedores").innerHTML=
-activos.length
-?activos.map(x=>`
-<div class="item">
-<strong>${x.n}</strong><br>
-${x.e}
-</div>`).join("")
-:"<div class='item'>Sin proveedores activos</div>";
+a.length?a.map(x=>`<div class="item"><b>${x.n}</b><br>${x.e}</div>`).join("")
+:"<div class='item'>Sin proveedores</div>";
+
 }
+
+function reloj(){
+document.getElementById("hora").innerText=
+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+
+cargar();
+setInterval(cargar,5000);
+setInterval(reloj,1000);
+
+</script>
+
+</body>
+</html>
