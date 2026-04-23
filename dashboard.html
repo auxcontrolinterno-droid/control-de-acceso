@@ -1,12 +1,208 @@
-<!DOCTYPE html>
-<html>
-<body>
-
-<h1>SI VES ESTO, EL HTML FUNCIONA</h1>
-
 <script>
-document.body.innerHTML += "<p>JS FUNCIONA</p>";
-</script>
 
-</body>
-</html>
+document.addEventListener("DOMContentLoaded", () => {
+  init();
+});
+
+/* =========================
+   CONFIG
+========================= */
+
+const INGRESOS_URL =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+
+const SALIDAS_URL =
+"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
+
+const $ = id => document.getElementById(id);
+
+/* =========================
+   INIT
+========================= */
+
+function init(){
+
+  renderBase();
+
+  load();
+
+  setInterval(load, 6000);
+  setInterval(clock, 1000);
+
+}
+
+/* =========================
+   UI BASE
+========================= */
+
+function renderBase(){
+
+  document.body.innerHTML = `
+    <div style="font-family:Arial;padding:20px">
+
+      <h2>📊 Control de Acceso</h2>
+
+      <div id="estado">Cargando...</div>
+
+      <p>Ingresos: <b id="ingresos">0</b></p>
+      <p>Salidas: <b id="salidas">0</b></p>
+
+      <p>Actualizado: <span id="actualizado">--</span></p>
+
+      <hr>
+
+      <table border="1" width="100%">
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>Nombre</th>
+            <th>Rol</th>
+            <th>Tipo</th>
+          </tr>
+        </thead>
+        <tbody id="tabla"></tbody>
+      </table>
+
+    </div>
+  `;
+
+}
+
+/* =========================
+   FETCH SAFE
+========================= */
+
+async function fetchSheet(url){
+
+  try{
+
+    const r = await fetch(url);
+    const t = await r.text();
+
+    const json = JSON.parse(t.substring(47).slice(0,-2));
+
+    return json.table.rows.map(r => {
+      const c = (r.c || []).map(x => x ? x.v : "");
+      return {
+        nombre: c[0],
+        doc: c[1],
+        rol: c[2],
+        hora: c[9],
+        fecha: c[10]
+      };
+    });
+
+  }catch(e){
+    console.error(e);
+    return [];
+  }
+
+}
+
+/* =========================
+   DATE
+========================= */
+
+function parseDate(v){
+  if(!v) return null;
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+
+function isToday(v){
+  const d = parseDate(v);
+  if(!d) return false;
+
+  const n = new Date();
+
+  return d.getDate()==n.getDate() &&
+         d.getMonth()==n.getMonth() &&
+         d.getFullYear()==n.getFullYear();
+}
+
+function time(v){
+  const d = parseDate(v);
+  if(!d) return "--";
+
+  return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+/* =========================
+   LOAD
+========================= */
+
+async function load(){
+
+  try{
+
+    const ingresosRaw = await fetchSheet(INGRESOS_URL);
+    const salidasRaw = await fetchSheet(SALIDAS_URL);
+
+    const ingresos = ingresosRaw.filter(x => isToday(x.fecha));
+    const salidas = salidasRaw.filter(x => isToday(x.fecha));
+
+    $("ingresos").innerText = ingresos.length;
+    $("salidas").innerText = salidas.length;
+
+    $("actualizado").innerText = new Date().toLocaleTimeString();
+
+    renderTable(ingresos, salidas);
+
+    $("estado").innerText = "🟢 Online";
+
+  }catch(e){
+    console.error(e);
+    $("estado").innerText = "🔴 Error";
+  }
+
+}
+
+/* =========================
+   TABLE
+========================= */
+
+function renderTable(ingresos, salidas){
+
+  let mov = [];
+
+  ingresos.forEach(x=>{
+    mov.push({
+      h:x.hora,
+      n:x.nombre,
+      r:x.rol,
+      t:"Ingreso"
+    });
+  });
+
+  salidas.forEach(x=>{
+    mov.push({
+      h:x.hora,
+      n:x.nombre,
+      r:x.rol,
+      t:"Salida"
+    });
+  });
+
+  mov.sort((a,b)=> new Date(b.h)-new Date(a.h));
+  mov = mov.slice(0,10);
+
+  $("tabla").innerHTML = mov.map(m=>`
+    <tr>
+      <td>${time(m.h)}</td>
+      <td>${m.n}</td>
+      <td>${m.r}</td>
+      <td>${m.t}</td>
+    </tr>
+  `).join("");
+
+}
+
+/* =========================
+   CLOCK
+========================= */
+
+function clock(){
+  $("actualizado").innerText = new Date().toLocaleTimeString();
+}
+
+</script>
