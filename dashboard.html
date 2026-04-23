@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Dashboard Seguridad Altamira</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -14,17 +15,14 @@ background:#eef2f7;
 color:#111;
 }
 
-/* HEADER */
 .header{
 background:white;
-padding:20px;
+padding:18px;
 text-align:center;
 border-bottom:3px solid #0b3d91;
 }
 
-.header img{
-width:200px;
-}
+.header img{width:180px;}
 
 .header h1{
 color:#0b3d91;
@@ -32,55 +30,46 @@ margin-top:10px;
 font-size:24px;
 }
 
-/* CONTENEDOR */
 .wrap{
 width:95%;
 margin:auto;
 padding:20px;
 }
 
-/* CARDS */
 .cards{
 display:grid;
 grid-template-columns:repeat(6,1fr);
-gap:15px;
+gap:12px;
 margin-bottom:20px;
 }
 
 .card{
 background:white;
-padding:20px;
-border-radius:15px;
-box-shadow:0 5px 15px rgba(0,0,0,0.08);
+padding:18px;
+border-radius:12px;
 text-align:center;
+box-shadow:0 4px 12px rgba(0,0,0,.08);
 }
 
 .card h2{
-font-size:32px;
+font-size:30px;
 color:#0b3d91;
+margin:0;
 }
 
-/* GRID */
 .grid{
 display:grid;
 grid-template-columns:2fr 1fr 1fr;
 gap:15px;
 }
 
-/* PANEL */
 .panel{
 background:white;
 padding:15px;
-border-radius:15px;
-box-shadow:0 5px 15px rgba(0,0,0,0.08);
+border-radius:12px;
+box-shadow:0 4px 12px rgba(0,0,0,.08);
 }
 
-.panel h3{
-color:#0b3d91;
-margin-bottom:10px;
-}
-
-/* TABLA */
 table{
 width:100%;
 border-collapse:collapse;
@@ -90,8 +79,8 @@ th{
 background:#0b3d91;
 color:white;
 padding:10px;
-font-size:13px;
 text-align:left;
+font-size:13px;
 }
 
 td{
@@ -100,7 +89,6 @@ border-bottom:1px solid #eee;
 font-size:14px;
 }
 
-/* LISTAS */
 .item{
 background:#f7f9fc;
 padding:10px;
@@ -108,7 +96,6 @@ margin-bottom:8px;
 border-radius:10px;
 }
 
-/* BADGES */
 .badge-in{color:green;font-weight:bold;}
 .badge-out{color:red;font-weight:bold;}
 
@@ -124,20 +111,17 @@ border-radius:10px;
 
 <div class="wrap">
 
-<!-- CARDS -->
 <div class="cards">
 <div class="card"><h2 id="ingresos">0</h2><small>Ingresos Hoy</small></div>
 <div class="card"><h2 id="salidas">0</h2><small>Salidas Hoy</small></div>
 <div class="card"><h2 id="dentro">0</h2><small>Dentro</small></div>
-<div class="card"><h2 id="estado">🟡</h2><small>Estado</small></div>
 <div class="card"><h2 id="hora">--</h2><small>Hora</small></div>
 <div class="card"><h2 id="sync">--</h2><small>Sync</small></div>
+<div class="card"><h2 id="estado">🟢</h2><small>Estado</small></div>
 </div>
 
-<!-- GRID -->
 <div class="grid">
 
-<!-- MOVIMIENTOS -->
 <div class="panel">
 <h3>Últimos Movimientos</h3>
 <table>
@@ -153,13 +137,11 @@ border-radius:10px;
 </table>
 </div>
 
-<!-- CONTRATISTAS -->
 <div class="panel">
 <h3>Contratistas Dentro</h3>
 <div id="listaContratistas"></div>
 </div>
 
-<!-- PROVEEDORES -->
 <div class="panel">
 <h3>Proveedores Dentro</h3>
 <div id="listaProveedores"></div>
@@ -171,25 +153,43 @@ border-radius:10px;
 
 <script>
 
-/* URLs */
-const ING="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
-const SAL="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
+/* =========================
+   URL SHEETS
+========================= */
 
-let last="";
+const INGRESOS_URL="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+const SALIDAS_URL="https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
 
-/* leer seguro */
+/* =========================
+   LECTURA SEGURA (CORREGIDA)
+========================= */
+
 async function leer(url){
 try{
-let r=await fetch(url);
-let t=await r.text();
-let j=JSON.parse(t.substring(47).slice(0,-2));
-return j.table.rows.map(r=>(r.c||[]).map(x=>x?x.v:""));
+const res=await fetch(url);
+const text=await res.text();
+
+/* 🔥 FIX REAL: Google Sheets response */
+const match=text.match(/google\.visualization\.Query\.setResponse\((.*)\);/s);
+
+if(!match) return [];
+
+const json=JSON.parse(match[1]);
+
+return json.table.rows.map(r=>
+(r.c||[]).map(c=>c?c.v:"")
+);
+
 }catch(e){
+console.log("ERROR SHEET",e);
 return [];
 }
 }
 
-/* fecha hoy */
+/* =========================
+   FECHA
+========================= */
+
 function hoy(v){
 return new Date(v).toDateString()===new Date().toDateString();
 }
@@ -198,31 +198,39 @@ function hora(v){
 return new Date(v).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
 }
 
-/* MAIN */
+/* =========================
+   MAIN
+========================= */
+
 async function load(){
 
-let i=await leer(ING);
-let s=await leer(SAL);
+let ing=await leer(INGRESOS_URL);
+let sal=await leer(SALIDAS_URL);
 
-if(!i.length) return;
+if(!ing.length){
+document.getElementById("estado").innerText="🔴 SIN DATOS";
+return;
+}
 
-let h=i.length+"-"+s.length;
-if(h==last)return;
-last=h;
+/* HOY */
+let ingresos=ing.filter(x=>hoy(x[0]));
+let salidas=sal.filter(x=>hoy(x[0]));
 
-let ing=i.filter(x=>hoy(x[0]));
-let sal=s.filter(x=>hoy(x[0]));
-
-/* cards */
-document.getElementById("ingresos").innerText=ing.length;
-document.getElementById("salidas").innerText=sal.length;
+/* CARDS */
+document.getElementById("ingresos").innerText=ingresos.length;
+document.getElementById("salidas").innerText=salidas.length;
 document.getElementById("sync").innerText=new Date().toLocaleTimeString();
 
-/* movimientos */
+/* MOVIMIENTOS */
 let mov=[];
 
-ing.forEach(f=>mov.push({h:f[0],n:f[3],r:f[4],t:"Ingreso"}));
-sal.forEach(f=>mov.push({h:f[0],n:f[3],r:f[4],t:"Salida"}));
+ingresos.forEach(f=>{
+mov.push({h:f[0],n:f[3],r:f[4],t:"Ingreso"});
+});
+
+salidas.forEach(f=>{
+mov.push({h:f[0],n:f[3],r:f[4],t:"Salida"});
+});
 
 mov.sort((a,b)=>new Date(b.h)-new Date(a.h));
 
@@ -233,35 +241,40 @@ mov.slice(0,10).map(m=>`
 <td>${m.n||"-"}</td>
 <td>${m.r||"-"}</td>
 <td>${m.t}</td>
-</tr>`).join("");
+</tr>
+`).join("");
 
 
-/* CONTRATISTAS */
-let cont=new Map();
+/* =========================
+   CONTRATISTAS
+========================= */
 
-ing.forEach(f=>{
-if((f[4]||"").toUpperCase().includes("CONTRATISTA")){
-cont.set(f[3],f[5]);
+let contratistas=new Map();
+let proveedores=new Map();
+
+ingresos.forEach(f=>{
+
+let rol=(f[4]||"").toUpperCase();
+let nombre=f[3];
+let entidad=f[5];
+
+if(rol.includes("CONTRAT")){
+contratistas.set(nombre,entidad);
 }
+
+if(rol.includes("PROVE")){
+proveedores.set(nombre,entidad);
+}
+
 });
 
 document.getElementById("listaContratistas").innerHTML=
-[...cont.entries()].map(x=>
+[...contratistas.entries()].map(x=>
 `<div class="item"><b>${x[0]}</b><br>${x[1]}</div>`
 ).join("")||"Sin contratistas";
 
-
-/* PROVEEDORES */
-let prov=new Map();
-
-ing.forEach(f=>{
-if((f[4]||"").toUpperCase().includes("PROVEEDOR")){
-prov.set(f[3],f[5]);
-}
-});
-
 document.getElementById("listaProveedores").innerHTML=
-[...prov.entries()].map(x=>
+[...proveedores.entries()].map(x=>
 `<div class="item"><b>${x[0]}</b><br>${x[1]}</div>`
 ).join("")||"Sin proveedores";
 
