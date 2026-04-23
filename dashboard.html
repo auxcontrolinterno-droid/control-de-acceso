@@ -1,98 +1,11 @@
 <!DOCTYPE html>
 <html>
-
-<title>Dashboard Seguro</title>
-<style>
-body{font-family:Arial;background:#f4f6fb;margin:0;padding:20px}
-.box{background:white;padding:15px;margin-bottom:10px;border-radius:10px}
-table{width:100%;border-collapse:collapse}
-td,th{border:1px solid #ddd;padding:5px}
-</style>
-</head>
-
 <body>
 
-<div class="box">
-<h2>📊 Dashboard</h2>
-<div id="estado">Cargando sistema...</div>
-</div>
-
-<div class="box">
-Ingresos: <b id="ingresos">0</b><br>
-Salidas: <b id="salidas">0</b>
-</div>
-
-<div class="box">
-<table>
-<thead>
-<tr><th>Hora</th><th>Nombre</th><th>Rol</th><th>Tipo</th></tr>
-</thead>
-<tbody id="tabla"></tbody>
-</table>
-</div>
+<h1>SI VES ESTO, EL HTML FUNCIONA</h1>
 
 <script>
-
-const SHEET =
-"https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
-
-function safe(v){ return v || ""; }
-
-async function load(){
-
-try{
-
-const r = await fetch(SHEET);
-const t = await r.text();
-
-if(!t.includes("table")){
-throw new Error("Sheet no válida");
-}
-
-const json = JSON.parse(t.substring(47).slice(0,-2));
-
-let rows = json.table.rows.map(r=>{
-const c=(r.c||[]).map(x=>x?x.v:"");
-return{
-n:c[3],
-r:c[4],
-h:c[9],
-f:c[10]
-};
-});
-
-document.getElementById("estado").innerText="🟢 Online";
-
-document.getElementById("ingresos").innerText=rows.length;
-
-document.getElementById("salidas").innerText=0;
-
-document.getElementById("tabla").innerHTML=
-rows.slice(0,10).map(x=>`
-<tr>
-<td>${x.h}</td>
-<td>${x.n}</td>
-<td>${x.r}</td>
-<td>Ingreso</td>
-</tr>
-`).join("");
-
-}catch(e){
-
-console.log(e);
-
-document.getElementById("estado").innerText="🔴 Error (API o Sheets)";
-
-document.getElementById("tabla").innerHTML=
-"<tr><td colspan='4'>Sin datos cargados</td></tr>";
-
-}
-
-}
-
-load();
-setInterval(load,5000);
-
+document.body.innerHTML += "<p>JS FUNCIONA</p>";
 </script>
 
 </body>
