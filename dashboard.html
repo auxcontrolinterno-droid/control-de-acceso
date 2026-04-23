@@ -53,11 +53,6 @@ background:#fff;
 padding:20px;
 border-radius:18px;
 box-shadow:0 10px 25px rgba(0,0,0,.08);
-transition:.2s;
-}
-
-.card:hover{
-transform:translateY(-3px);
 }
 
 .card small{
@@ -141,12 +136,6 @@ background:#f8fafc;
 padding:14px;
 border-radius:14px;
 font-size:14px;
-transition:.2s;
-}
-
-.item:hover{
-transform:scale(1.02);
-background:#eef5ff;
 }
 
 /* FOOTER */
@@ -157,7 +146,6 @@ font-size:12px;
 color:#666;
 }
 
-/* RESPONSIVE */
 @media(max-width:900px){
 .grid{grid-template-columns:1fr;}
 }
@@ -189,6 +177,12 @@ color:#666;
 <div class="card">
 <small>Contratistas Dentro</small>
 <h2 id="dentro">0</h2>
+</div>
+
+<!-- 🔥 NUEVO -->
+<div class="card">
+<small>Proveedores Dentro</small>
+<h2 id="proveedores">0</h2>
 </div>
 
 <div class="card">
@@ -228,7 +222,7 @@ color:#666;
 </div>
 
 <div class="panel">
-<h3>Contratistas Dentro</h3>
+<h3>Personas Dentro</h3>
 <div class="lista" id="listaDentro"></div>
 </div>
 
@@ -238,84 +232,39 @@ color:#666;
 
 <script>
 
-/* =========================
-   CONFIG
-========================= */
-
 const URL_INGRESOS =
 "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
 const URL_SALIDAS =
 "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
 
-/* =========================
-   CACHE (evita renders inútiles)
-========================= */
-
-let lastHash = "";
-
-/* =========================
-   API SHEETS
-========================= */
+let lastHash="";
 
 async function leerSheet(url){
-const res = await fetch(url);
-const txt = await res.text();
-const json = JSON.parse(txt.substring(47).slice(0,-2));
-
-return json.table.rows.map(r =>
-(r.c || []).map(x => x ? x.v : "")
-);
+const res=await fetch(url);
+const txt=await res.text();
+const json=JSON.parse(txt.substring(47).slice(0,-2));
+return json.table.rows.map(r=>(r.c||[]).map(x=>x?x.v:""));
 }
-
-/* =========================
-   FECHAS ROBUSTAS
-========================= */
 
 function convertirFecha(v){
 if(!v) return null;
-
 if(v instanceof Date) return v;
-
-if(typeof v === "number"){
-return new Date(Math.round((v - 25569) * 86400 * 1000));
-}
-
-if(typeof v === "string"){
-const d = new Date(v);
-if(!isNaN(d)) return d;
-}
-
-if(typeof v==="string" && v.includes("Date(")){
-const n=v.match(/\d+/g).map(Number);
-return new Date(n[0],n[1],n[2],n[3]||0,n[4]||0,n[5]||0);
-}
-
-return null;
+if(typeof v==="number") return new Date(Math.round((v-25569)*86400*1000));
+return new Date(v);
 }
 
 function esHoy(v){
 const f=convertirFecha(v);
 if(!f) return false;
-
 const h=new Date();
-return f.getDate()===h.getDate() &&
-f.getMonth()===h.getMonth() &&
-f.getFullYear()===h.getFullYear();
+return f.toDateString()===h.toDateString();
 }
 
 function hora(v){
 const f=convertirFecha(v);
-if(!f) return "--";
-
-return f.toLocaleTimeString([],{
-hour:'2-digit',minute:'2-digit'
-});
+return f?f.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):"--";
 }
-
-/* =========================
-   DASHBOARD MAIN
-========================= */
 
 async function cargarDashboard(){
 
@@ -323,31 +272,24 @@ try{
 
 document.getElementById("estado").innerText="🟢 Online";
 
-let ingresosRaw = await leerSheet(URL_INGRESOS);
-let salidasRaw = await leerSheet(URL_SALIDAS);
+let ingresosRaw=await leerSheet(URL_INGRESOS);
+let salidasRaw=await leerSheet(URL_SALIDAS);
 
-/* HASH SIMPLE (evita re-render innecesario) */
-let hash = ingresosRaw.length + "-" + salidasRaw.length;
+let hash=ingresosRaw.length+"-"+salidasRaw.length;
+if(hash===lastHash) return;
+lastHash=hash;
 
-if(hash === lastHash){
-return;
-}
-lastHash = hash;
+let ingresos=ingresosRaw.filter(f=>esHoy(f[0]));
+let salidas=salidasRaw.filter(f=>esHoy(f[0]));
 
-/* FILTRO HOY */
-let ingresos = ingresosRaw.filter(f=>esHoy(f[0]));
-let salidas = salidasRaw.filter(f=>esHoy(f[0]));
+document.getElementById("ingresos").innerText=ingresos.length;
+document.getElementById("salidas").innerText=salidas.length;
 
-/* CARDS */
-document.getElementById("ingresos").innerText = ingresos.length;
-document.getElementById("salidas").innerText = salidas.length;
-
-document.getElementById("actualizado").innerText =
-new Date().toLocaleTimeString();
-
-/* RENDER */
 ultimosMovimientos(ingresos,salidas);
-contratistas(ingresos,salidas);
+personasDentro(ingresos,salidas);
+
+document.getElementById("actualizado").innerText=
+new Date().toLocaleTimeString();
 
 }catch(e){
 document.getElementById("estado").innerText="🔴 Error";
@@ -355,10 +297,6 @@ console.log(e);
 }
 
 }
-
-/* =========================
-   MOVIMIENTOS
-========================= */
 
 function ultimosMovimientos(ingresos,salidas){
 
@@ -388,57 +326,47 @@ mov.map(m=>`
 `).join("");
 }
 
-/* =========================
-   CONTRATISTAS
-========================= */
+/* 🔥 NUEVO: dentro + duplicados */
+function personasDentro(ingresos,salidas){
 
-function contratistas(ingresos,salidas){
+let salidaSet=new Set(salidas.map(x=>String(x[2]).trim()));
 
-let sal=new Set(salidas.map(x=>String(x[2]).trim()));
 let map=new Map();
 
 ingresos.forEach(f=>{
-if(String(f[4]).toUpperCase()==="CONTRATISTA"){
-let d=String(f[2]).trim();
-if(!sal.has(d)){
-map.set(d,{n:f[3],e:f[5]});
-}
-}
+
+let rol=String(f[4]).toUpperCase();
+let doc=String(f[2]).trim();
+
+if(!salidaSet.has(doc)){
+
+map.set(doc,{
+n:f[3],
+r:rol
 });
 
-let activos=[...map.values()];
+}
 
-document.getElementById("dentro").innerText=activos.length;
+});
+
+let lista=[...map.values()];
+
+let contr=lista.filter(x=>x.r==="CONTRATISTA");
+let prov=lista.filter(x=>x.r==="PROVEEDOR");
+
+document.getElementById("dentro").innerText=contr.length;
+document.getElementById("proveedores").innerText=prov.length;
 
 document.getElementById("listaDentro").innerHTML=
-activos.length
-?activos.map(x=>`
+lista.map(x=>`
 <div class="item">
-<strong>${x.n}</strong><br>${x.e||"-"}
-</div>`).join("")
-:"<div class='item'>Sin contratistas activos</div>";
+<strong>${x.n}</strong><br>${x.r}
+</div>`).join("");
+
 }
 
-/* =========================
-   RELOJ LOCAL
-========================= */
-
-function reloj(){
-document.getElementById("hora").innerText=
-new Date().toLocaleTimeString([],{
-hour:'2-digit',minute:'2-digit'
-});
-}
-
-/* =========================
-   INICIO
-========================= */
-
+setInterval(cargarDashboard,5000);
 cargarDashboard();
-
-/* 🔥 optimizado */
-setInterval(cargarDashboard, 5000); // datos
-setInterval(reloj, 1000);           // reloj
 
 </script>
 
