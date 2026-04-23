@@ -1,231 +1,98 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Dashboard Control de Acceso</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body{
-      font-family: Arial;
-      background:#f4f6fb;
-      margin:0;
-      padding:20px;
-    }
-
-    .card{
-      background:white;
-      padding:15px;
-      border-radius:12px;
-      margin-bottom:15px;
-      box-shadow:0 2px 10px rgba(0,0,0,.08);
-    }
-
-    h2{ margin:0 0 10px 0; }
-
-    .row{
-      display:flex;
-      justify-content:space-between;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:13px;
-    }
-
-    td,th{
-      border-bottom:1px solid #ddd;
-      padding:6px;
-      text-align:left;
-    }
-
-    .ok{ color:green; font-weight:bold; }
-    .err{ color:red; font-weight:bold; }
-
-    .badge-in{ color:blue; font-weight:bold; }
-    .badge-out{ color:red; font-weight:bold; }
-  </style>
+<meta charset="utf-8">
+<title>Dashboard Seguro</title>
+<style>
+body{font-family:Arial;background:#f4f6fb;margin:0;padding:20px}
+.box{background:white;padding:15px;margin-bottom:10px;border-radius:10px}
+table{width:100%;border-collapse:collapse}
+td,th{border:1px solid #ddd;padding:5px}
+</style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>📊 Dashboard Control de Acceso</h2>
-  <div id="estado">Cargando...</div>
+<div class="box">
+<h2>📊 Dashboard</h2>
+<div id="estado">Cargando sistema...</div>
 </div>
 
-<div class="card row">
-  <div>Ingresos hoy: <b id="ingresos">0</b></div>
-  <div>Salidas hoy: <b id="salidas">0</b></div>
+<div class="box">
+Ingresos: <b id="ingresos">0</b><br>
+Salidas: <b id="salidas">0</b>
 </div>
 
-<div class="card">
-  <h3>Últimos movimientos</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Hora</th>
-        <th>Nombre</th>
-        <th>Rol</th>
-        <th>Tipo</th>
-      </tr>
-    </thead>
-    <tbody id="tabla"></tbody>
-  </table>
-</div>
-
-<div class="card">
-  <h3>Contratistas activos</h3>
-  <div id="contratistas">0</div>
+<div class="box">
+<table>
+<thead>
+<tr><th>Hora</th><th>Nombre</th><th>Rol</th><th>Tipo</th></tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
 </div>
 
 <script>
 
-/* =========================
-   CONFIG
-========================= */
-
-const URL =
+const SHEET =
 "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
 
-/* =========================
-   SAFE FETCH
-========================= */
-
-async function getData(){
-  try{
-    const r = await fetch(URL);
-    const t = await r.text();
-
-    const json = JSON.parse(t.substring(47).slice(0,-2));
-
-    return json.table.rows.map(r=>{
-      const c = (r.c||[]).map(x=>x?x.v:"");
-
-      return {
-        nombre:c[3],
-        doc:c[2],
-        rol:c[4],
-        hora:c[9],
-        fecha:c[10]
-      };
-    });
-
-  }catch(e){
-    console.log(e);
-    return [];
-  }
-}
-
-/* =========================
-   FECHA HOY
-========================= */
-
-function isToday(v){
-  const d = new Date(v);
-  if(isNaN(d)) return false;
-
-  const n = new Date();
-
-  return d.getDate()==n.getDate() &&
-         d.getMonth()==n.getMonth() &&
-         d.getFullYear()==n.getFullYear();
-}
-
-/* =========================
-   HORA
-========================= */
-
-function hora(v){
-  const d = new Date(v);
-  if(isNaN(d)) return "--";
-
-  return d.toLocaleTimeString([],{
-    hour:"2-digit",
-    minute:"2-digit"
-  });
-}
-
-/* =========================
-   LOAD DASHBOARD
-========================= */
+function safe(v){ return v || ""; }
 
 async function load(){
 
-  try{
+try{
 
-    const data = await getData();
+const r = await fetch(SHEET);
+const t = await r.text();
 
-    const ingresos = data.filter(x=>isToday(x.fecha));
-    const salidas = data.filter(x=>isToday(x.fecha));
+if(!t.includes("table")){
+throw new Error("Sheet no válida");
+}
 
-    document.getElementById("ingresos").innerText = ingresos.length;
-    document.getElementById("salidas").innerText = salidas.length;
+const json = JSON.parse(t.substring(47).slice(0,-2));
 
-    render(ingresos, salidas);
+let rows = json.table.rows.map(r=>{
+const c=(r.c||[]).map(x=>x?x.v:"");
+return{
+n:c[3],
+r:c[4],
+h:c[9],
+f:c[10]
+};
+});
 
-    document.getElementById("estado").innerHTML =
-      "<span class='ok'>🟢 Online</span>";
+document.getElementById("estado").innerText="🟢 Online";
 
-  }catch(e){
+document.getElementById("ingresos").innerText=rows.length;
 
-    document.getElementById("estado").innerHTML =
-      "<span class='err'>🔴 Error</span>";
+document.getElementById("salidas").innerText=0;
 
-  }
+document.getElementById("tabla").innerHTML=
+rows.slice(0,10).map(x=>`
+<tr>
+<td>${x.h}</td>
+<td>${x.n}</td>
+<td>${x.r}</td>
+<td>Ingreso</td>
+</tr>
+`).join("");
+
+}catch(e){
+
+console.log(e);
+
+document.getElementById("estado").innerText="🔴 Error (API o Sheets)";
+
+document.getElementById("tabla").innerHTML=
+"<tr><td colspan='4'>Sin datos cargados</td></tr>";
 
 }
 
-/* =========================
-   RENDER TABLE
-========================= */
-
-function render(ingresos, salidas){
-
-  let mov = [];
-
-  ingresos.forEach(x=>{
-    mov.push({
-      h:x.hora,
-      n:x.nombre,
-      r:x.rol,
-      t:"Ingreso"
-    });
-  });
-
-  salidas.forEach(x=>{
-    mov.push({
-      h:x.hora,
-      n:x.nombre,
-      r:x.rol,
-      t:"Salida"
-    });
-  });
-
-  mov = mov.slice(0,10);
-
-  document.getElementById("tabla").innerHTML =
-  mov.map(m=>`
-    <tr>
-      <td>${hora(m.h)}</td>
-      <td>${m.n}</td>
-      <td>${m.r}</td>
-      <td class="${m.t=='Ingreso'?'badge-in':'badge-out'}">
-        ${m.t}
-      </td>
-    </tr>
-  `).join("");
-
 }
-
-/* =========================
-   AUTO REFRESH
-========================= */
 
 load();
-setInterval(load, 5000);
+setInterval(load,5000);
 
 </script>
 
