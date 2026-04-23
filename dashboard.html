@@ -11,6 +11,12 @@ const URL_SALIDAS =
 "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=366969943&tqx=out:json";
 
 /* =========================
+   SAFE DOM
+========================= */
+
+const $ = (id) => document.getElementById(id);
+
+/* =========================
    CACHE
 ========================= */
 
@@ -25,17 +31,40 @@ return (v ?? "").toString().trim();
 }
 
 /* =========================
+   FIX PARSER GOOGLE SHEETS
+========================= */
+
+function parseGoogleJSON(txt){
+try {
+const start = txt.indexOf("{");
+const end = txt.lastIndexOf("}");
+return JSON.parse(txt.slice(start, end + 1));
+} catch (e) {
+console.error("Parse error:", e);
+return null;
+}
+}
+
+/* =========================
    API SHEETS
 ========================= */
 
 async function leerSheet(url){
+try{
 const res = await fetch(url);
 const txt = await res.text();
-const json = JSON.parse(txt.substring(47).slice(0,-2));
+
+const json = parseGoogleJSON(txt);
+if(!json?.table?.rows) return [];
 
 return json.table.rows.map(r =>
 (r.c || []).map(x => x ? x.v : "")
 );
+
+}catch(e){
+console.error("Fetch error:", e);
+return [];
+}
 }
 
 /* =========================
@@ -57,15 +86,15 @@ if(!isNaN(d)) return d;
 }
 
 if(typeof v==="string" && v.includes("Date(")){
-const n=v.match(/\d+/g).map(Number);
-return new Date(n[0],n[1],n[2],n[3]||0,n[4]||0,n[5]||0);
+const n=v.match(/\d+/g)?.map(Number);
+if(n) return new Date(n[0],n[1],n[2],n[3]||0,n[4]||0,n[5]||0);
 }
 
 return null;
 }
 
 /* =========================
-   HOY (IMPORTANTE)
+   HOY
 ========================= */
 
 function esHoy(v){
@@ -100,7 +129,7 @@ async function cargarDashboard(){
 
 try{
 
-document.getElementById("estado").innerText="🟢 Online";
+if($("estado")) $("estado").innerText="🟢 Online";
 
 let ingresosRaw = await leerSheet(URL_INGRESOS);
 let salidasRaw = await leerSheet(URL_SALIDAS);
@@ -110,27 +139,21 @@ let hash = ingresosRaw.length + "-" + salidasRaw.length;
 if(hash === lastHash) return;
 lastHash = hash;
 
-/* =========================
-   🔥 FECHA CORRECTA = f[10]
-========================= */
-
 let ingresos = ingresosRaw.filter(f => esHoy(f[10]));
 let salidas = salidasRaw.filter(f => esHoy(f[10]));
 
-/* CARDS */
-document.getElementById("ingresos").innerText = ingresos.length;
-document.getElementById("salidas").innerText = salidas.length;
+if($("ingresos")) $("ingresos").innerText = ingresos.length;
+if($("salidas")) $("salidas").innerText = salidas.length;
 
-document.getElementById("actualizado").innerText =
-new Date().toLocaleTimeString();
+if($("actualizado"))
+$("actualizado").innerText = new Date().toLocaleTimeString();
 
-/* RENDER */
 ultimosMovimientos(ingresos, salidas);
 contratistas(ingresos, salidas);
 
 }catch(e){
-document.getElementById("estado").innerText="🔴 Error";
-console.log(e);
+console.error(e);
+if($("estado")) $("estado").innerText="🔴 Error";
 }
 
 }
@@ -143,7 +166,6 @@ function ultimosMovimientos(ingresos, salidas){
 
 let mov=[];
 
-/* INGRESOS */
 ingresos.forEach(f=>{
 mov.push({
 h: f[9],
@@ -153,7 +175,6 @@ t: "Ingreso"
 });
 });
 
-/* SALIDAS */
 salidas.forEach(f=>{
 mov.push({
 h: f[9],
@@ -166,7 +187,9 @@ t: "Salida"
 mov.sort((a,b)=>convertirFecha(b.h)-convertirFecha(a.h));
 mov = mov.slice(0,10);
 
-document.getElementById("tabla").innerHTML =
+if(!$("tabla")) return;
+
+$("tabla").innerHTML =
 mov.map(m=>`
 <tr>
 <td>${hora(m.h)}</td>
@@ -191,28 +214,24 @@ function contratistas(ingresos, salidas){
 let sal = new Set(salidas.map(x => safe(x[1])));
 let map = new Map();
 
-/* INGRESOS */
 ingresos.forEach(f=>{
-
 if(String(f[2]).toUpperCase() === "CONTRATISTA"){
-
 let doc = safe(f[1]);
-
 if(!sal.has(doc)){
 map.set(doc,{
 n: safe(f[0]),
 e: safe(f[5])
 });
 }
-
 }
 });
 
 let activos = [...map.values()];
 
-document.getElementById("dentro").innerText = activos.length;
+if($("dentro")) $("dentro").innerText = activos.length;
 
-document.getElementById("listaDentro").innerHTML =
+if($("listaDentro")){
+$("listaDentro").innerHTML =
 activos.length
 ? activos.map(x=>`
 <div class="item">
@@ -220,6 +239,7 @@ activos.length
 </div>
 `).join("")
 : "<div class='item'>Sin contratistas activos</div>";
+}
 
 }
 
@@ -228,19 +248,24 @@ activos.length
 ========================= */
 
 function reloj(){
-document.getElementById("hora").innerText =
+if($("hora")){
+$("hora").innerText =
 new Date().toLocaleTimeString([],{
 hour:'2-digit',minute:'2-digit'
 });
 }
+}
 
 /* =========================
-   INICIO
+   INIT SEGURO
 ========================= */
 
-cargarDashboard();
+document.addEventListener("DOMContentLoaded", () => {
 
+cargarDashboard();
 setInterval(cargarDashboard, 5000);
 setInterval(reloj, 1000);
+
+});
 
 </script>
