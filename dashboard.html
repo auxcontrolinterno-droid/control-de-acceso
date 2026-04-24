@@ -322,7 +322,7 @@ document.getElementById("estado").innerText="🟢 Online";
 let ingresosRaw = await leerSheet(URL_INGRESOS);
 let salidasRaw = await leerSheet(URL_SALIDAS);
 
-let hash = ingresosRaw.length + "-" + salidasRaw.length;
+let hash = JSON.stringify([ingresosRaw, salidasRaw]);
 if(hash === lastHash) return;
 lastHash = hash;
 
