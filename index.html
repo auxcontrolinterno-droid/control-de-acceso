@@ -177,7 +177,27 @@ label{display:block;text-align:left;font-size:12px;color:#555;margin:0 0 4px 4px
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBfdtZjGnnRW3W1B02kq_2YgshWuuSZr2o",
+  authDomain: "control-de-acceso-b04a4.firebaseapp.com",
+  projectId: "control-de-acceso-b04a4",
+  storageBucket: "control-de-acceso-b04a4.firebasestorage.app",
+  messagingSenderId: "212919729909",
+  appId: "1:212919729909:web:0614f098a98616c4e2cfbc"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function hoyStr(){
+  const d = new Date();
+  const p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+function normalizarRol(r){
+  return String(r || "").trim().toUpperCase();
+}
+</script>
 <script>
 const $ = id => document.getElementById(id);
 
@@ -259,7 +279,7 @@ async function buscarPersona(d){
   try{
     const snap = await db.collection("personas").doc(d).get();
     p = snap.exists ? snap.data() : null;
-  }catch(e){ console.error(e); }
+  }catch(e){ console.error(e); msg("Error al buscar: " + (e.code || e.message), "error"); }
   if(mi !== seq) return;          // el usuario siguió escribiendo
 
   persona = p;
@@ -359,7 +379,7 @@ async function registrarIngreso(){
     terminar("✅ Ingreso registrado. ¡Bienvenido, " + datos.nombre.split(" ")[0] + "!");
   }catch(e){
     console.error(e);
-    msg("No se pudo registrar. Verifique la conexión e intente de nuevo.", "error");
+    msg("No se pudo registrar. Error: " + (e.code || e.message), "error");
   }finally{
     btn.disabled = false;
   }
@@ -389,7 +409,7 @@ async function registrarSalida(){
     terminar("✅ Se registró exitosamente su salida");
   }catch(e){
     console.error(e);
-    msg("No se pudo registrar. Verifique la conexión e intente de nuevo.", "error");
+    msg("No se pudo registrar. Error: " + (e.code || e.message), "error");
   }finally{
     btn.disabled = false;
   }
