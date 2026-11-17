@@ -1,308 +1,429 @@
-<!DOCTYPE html>  <html>    <head>    
-  <title>Control de Acceso</title>    
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">    <style>    
-    body{    
-      font-family:'Inter',sans-serif;    
-      background:linear-gradient(135deg,#e9eef5,#dfe7f1);    
-      margin:0;    
-      text-align:center;    
-    }    .header{    
-  background:white;    
-  padding:10px 0;    
-  border-bottom:2px solid #0b3d91;    
-  box-shadow:0 2px 6px rgba(0,0,0,.05);    
-}    
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Control de Acceso</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+body{
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(135deg,#e9eef5,#dfe7f1);
+  margin:0;
+  text-align:center;
+}
+.header{
+  background:white;
+  padding:10px 0;
+  border-bottom:2px solid #0b3d91;
+  box-shadow:0 2px 6px rgba(0,0,0,.05);
+}
+.header img{width:70%;max-width:280px;height:auto;}
+.container{
+  background:white;
+  width:92%;
+  max-width:400px;
+  margin:20px auto 30px;
+  padding:22px;
+  border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+h2{margin:0 0 8px;color:#0b3d91;font-size:24px;font-weight:700;}
+.mensaje{font-size:14px;color:#444;margin-bottom:14px;min-height:20px;}
+.mensaje.ok{color:#15803d;font-weight:700;font-size:16px;}
+.mensaje.error{color:#b91c1c;font-weight:600;}
 
-.header img{    
-  width:55%;    
-  max-width:200px;    
-}    
+/* Rol: 1 toque en vez de abrir un menú */
+.roles{display:flex;gap:8px;margin-bottom:14px;}
+.roles button{
+  flex:1;padding:14px 4px;border:2px solid #0b3d91;border-radius:12px;
+  background:#fff;color:#0b3d91;font-family:'Inter',sans-serif;
+  font-size:12px;font-weight:700;cursor:pointer;
+}
+.roles button.activo{background:#0b3d91;color:#fff;}
 
-.container{    
-  background:white;    
-  width:90%;    
-  max-width:380px;    
-  margin:30px auto;    
-  padding:25px;    
-  border-radius:18px;    
-  box-shadow:0 10px 25px rgba(0,0,0,.08);    
-}    
+input,select{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  margin-bottom:12px;
+  outline:none;
+  font-family:'Inter',sans-serif;
+  font-size:16px; /* evita el zoom automático en iPhone */
+  background:#fff;
+}
+input:focus,select:focus{border-color:#0b3d91;}
+label{display:block;text-align:left;font-size:12px;color:#555;margin:0 0 4px 4px;}
+.fila{display:flex;gap:8px;}
+.fila > *{flex:1;min-width:0;}
 
-h2{    
-  margin-bottom:10px;    
-  color:#0b3d91;    
-  font-size:24px;    
-  font-weight:700;    
-}    
+.btn{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:12px;
+  color:white;
+  font-size:16px;
+  font-weight:600;
+  margin-bottom:10px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+.btn:disabled{opacity:.6;cursor:wait;}
+.ingreso{background:#0b3d91;}
+.salida{background:#c62828;}
 
-.mensaje{    
-  font-size:13px;    
-  color:#444;    
-  margin-bottom:15px;    
-  min-height:20px;    
-}    
+.resumen{
+  background:#f1f6ff;border:1px solid #cfe0ff;border-radius:14px;
+  padding:14px;margin-bottom:14px;text-align:left;
+}
+.resumen strong{display:block;font-size:17px;color:#0b3d91;}
+.resumen span{font-size:13px;color:#555;}
+.link{
+  background:none;border:none;color:#0b3d91;text-decoration:underline;
+  font-size:13px;cursor:pointer;padding:6px;margin-top:6px;font-family:'Inter',sans-serif;
+}
+.hidden{display:none !important;}
+.footer{font-size:11px;margin-top:18px;line-height:1.4;}
+.footer .departamento{color:#0b3d91;font-weight:700;}
+.footer .corporacion{color:#000;font-weight:700;}
+</style>
+</head>
+<body>
 
-input,select{    
-  width:80%;    
-  padding:12px;    
-  border-radius:10px;    
-  border:1px solid #ccc;    
-  margin-bottom:14px;    
-  outline:none;    
-  font-family:'Inter',sans-serif;    
-}    
+<div class="header">
+  <img src="logo.jpg" alt="Altamira International School">
+</div>
 
-.btn{    
-  width:100%;    
-  padding:13px;    
-  border:none;    
-  border-radius:12px;    
-  color:white;    
-  font-size:15px;    
-  margin-bottom:12px;    
-  cursor:pointer;    
-  font-family:'Inter',sans-serif;    
-}    
+<div class="container">
+  <h2>Control de Acceso</h2>
+  <div class="mensaje" id="mensaje">Seleccione su rol</div>
 
-.ingreso{ background:#0b3d91; }    
-.salida{ background:#c62828; }    
+  <!-- 1 · Rol -->
+  <div class="roles" id="roles">
+    <button type="button" data-rol="VISITANTE" onclick="elegirRol('VISITANTE')">VISITANTE</button>
+    <button type="button" data-rol="CONTRATISTA" onclick="elegirRol('CONTRATISTA')">CONTRATISTA</button>
+    <button type="button" data-rol="PROVEEDOR" onclick="elegirRol('PROVEEDOR')">PROVEEDOR</button>
+  </div>
 
-.hidden{ display:none; }    
+  <!-- 2 · Documento -->
+  <div id="zonaDoc" class="hidden">
+    <select id="tipoDocInput" onchange="render()">
+      <option value="Cedula de Ciudadania" selected>Cédula de Ciudadanía</option>
+      <option value="Tarjeta de Identidad">Tarjeta de Identidad</option>
+      <option value="Cedula de Extranjeria">Cédula de Extranjería</option>
+      <option value="Pasaporte">Pasaporte</option>
+    </select>
+    <input id="docInput" placeholder="Número de documento" inputmode="numeric"
+           autocomplete="off" enterkeyhint="next" oninput="alEscribirDoc()">
+  </div>
 
-.footer{    
-  font-size:11px;    
-  margin-top:20px;    
-  line-height:1.4;    
-}    
+  <!-- 3 · Datos y acciones (aparecen solos al escribir el documento) -->
+  <div id="zonaDatos" class="hidden">
 
-.footer .departamento{    
-  color:#0b3d91;    
-  font-weight:700;    
-}    
+    <!-- Persona que ya vino antes: un solo toque -->
+    <div id="resumen" class="resumen hidden">
+      <strong id="resNombre"></strong>
+      <span id="resDetalle"></span><br>
+      <button type="button" class="link" onclick="editar()">Editar mis datos</button>
+    </div>
 
-.footer .corporacion{    
-  color:#000;    
-  font-weight:700;    
+    <!-- Persona nueva (o que edita sus datos) -->
+    <div id="campos" class="hidden">
+      <label for="nombre">Nombre completo *</label>
+      <input id="nombre" autocomplete="name" autocapitalize="words" enterkeyhint="next">
+
+      <label for="contacto">Teléfono de contacto *</label>
+      <input id="contacto" inputmode="tel" autocomplete="tel" enterkeyhint="next">
+
+      <label for="entidad">Empresa / entidad</label>
+      <input id="entidad" list="listaEntidades" autocapitalize="words" enterkeyhint="next">
+      <datalist id="listaEntidades"></datalist>
+
+      <label for="placa">Placa del vehículo (si aplica)</label>
+      <input id="placa" autocapitalize="characters" maxlength="8" enterkeyhint="next">
+
+      <label for="emergenciaNombre">Nombre del contacto de emergencia</label>
+      <input id="emergenciaNombre" autocapitalize="words" enterkeyhint="next">
+
+      <div class="fila">
+        <div>
+          <label for="emergencia">Teléfono emergencia</label>
+          <input id="emergencia" inputmode="tel" enterkeyhint="next">
+        </div>
+        <div>
+          <label for="parentesco">Parentesco</label>
+          <input id="parentesco" list="listaParentesco" autocapitalize="words" enterkeyhint="done">
+          <datalist id="listaParentesco">
+            <option value="Madre"><option value="Padre"><option value="Esposo(a)">
+            <option value="Hijo(a)"><option value="Hermano(a)"><option value="Amigo(a)">
+            <option value="Compañero(a) de trabajo"><option value="Otro">
+          </datalist>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn ingreso" id="btnIngreso" onclick="registrarIngreso()">Registrar ingreso</button>
+    <button class="btn salida hidden" id="btnSalida" onclick="registrarSalida()">Registrar salida</button>
+  </div>
+
+  <div class="footer">
+    <div class="departamento">DEPARTAMENTO DE CONTROL INTERNO DE SEGURIDAD E INFRAESTRUCTURA</div>
+    <div class="corporacion">CORPORACION COLEGIO INTERNACIONAL ALTAMIRA</div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+let rol = "";
+let persona = null;      // ficha guardada (si ya vino antes)
+let buscado = "";        // documento ya consultado
+let cargando = false;
+let editando = false;
+let llenado = false;     // los campos tienen datos de una persona guardada
+let timer = null;
+let seq = 0;
+
+const CAMPOS = ["nombre","contacto","entidad","placa","emergenciaNombre","emergencia","parentesco"];
+
+function msg(texto, tipo){
+  const m = $("mensaje");
+  m.innerText = texto;
+  m.className = "mensaje" + (tipo ? " " + tipo : "");
 }
 
-</style>  </head>  <body>  <div class="header">
-<img src="https://i.imgur.com/OB279U8.jpeg">
+/* ID del documento = número de documento (sin "/" ni espacios) */
+function idDoc(v){ return String(v || "").trim().replace(/[\/\s.]/g, ""); }
 
-</div>  <div class="container">    <h2>Control de Acceso</h2>    <div class="mensaje" id="mensaje">    
-  Registre su ingreso/salida    
-</div>    
-  <!-- ROL -->    
-  <select id="rolSelect" onchange="cambiarVista()">    
-    <option value="">Defina su rol</option>    
-    <option value="VISITANTE">VISITANTE</option>    
-    <option value="CONTRATISTA">CONTRATISTA</option>    
-    <option value="PROVEEDOR">PROVEEDOR</option>    
-  </select>    <!-- DOCUMENTO + TIPO -->    <div id="zonaCedula" class="hidden">  <select id="tipoDocInput">    
-  <option value="">Tipo de documento</option>    
-  <option value="Cedula de Ciudadania">Cédula de Ciudadanía</option>    
-  <option value="Tarjeta de Identidad">Tarjeta de Identidad</option>    
-  <option value="Cedula de Extranjeria">Cédula de Extranjería</option>    
-  <option value="Pasaporte">Pasaporte</option>    
-</select>    <input id="docInput" placeholder="Numero de documento">    </div>    <!-- BOTONES -->    <div id="zonaIngreso" class="hidden">    
-    <button class="btn ingreso" onclick="irIngreso()">Ingreso</button>    
-  </div>    <div id="zonaSalida" class="hidden">    
-    <button class="btn salida" onclick="irSalida()">Salida</button>    
-  </div>    <div class="footer">    
-    <div class="departamento">    
-      DEPARTAMENTO DE CONTROL INTERNO DE SEGURIDAD E INFRAESTRUCTURA    
-    </div>    
-    <div class="corporacion">    
-      CORPORACION COLEGIO INTERNACIONAL ALTAMIRA    
-    </div>    
-  </div>  </div>  <script>    const SHEET_URL = "https://docs.google.com/spreadsheets/d/1nf60amlLaZTUmXu9k-IE7DTyl8RmCARJOdP5wuBjMjw/gviz/tq?gid=2145380964&tqx=out:json";
+function esConocido(){ return !!(persona && persona.nombre && persona.contacto); }
 
-let data = [];
-
-async function cargarDatos(){
-try{
-const res = await fetch(SHEET_URL);
-const text = await res.text();
-const json = JSON.parse(text.substring(47).slice(0,-2));
-
-data = json.table.rows.map(r=>{    
-  const c = (r.c || []).map(x => x ? x.v : "");    
-
-  return{    
-    tipo:c[1] || "",    
-    doc:c[2] || "",    
-    nombre:c[3] || "",    
-    rol:c[4] || "",    
-    entidad:c[5] || "",    
-    placa:c[6] || "",    
-    contacto:c[8] || "",    
-    emergencia:c[9] || "",    
-    parentesco:c[11] || ""    
-  };    
-});
-
-}catch(e){
-alert("Error cargando base");
+/* ---------- Empresas usadas antes en este equipo (sugerencias, se puede escribir otra) ---------- */
+function cargarEntidades(){
+  try{
+    const lista = JSON.parse(localStorage.getItem("entidades") || "[]");
+    const dl = $("listaEntidades");
+    dl.innerHTML = "";
+    lista.forEach(e => { const o = document.createElement("option"); o.value = e; dl.appendChild(o); });
+  }catch(e){}
 }
+function recordarEntidad(e){
+  if(!e) return;
+  try{
+    let lista = JSON.parse(localStorage.getItem("entidades") || "[]");
+    lista = [e, ...lista.filter(x => x.toLowerCase() !== e.toLowerCase())].slice(0, 40);
+    localStorage.setItem("entidades", JSON.stringify(lista));
+  }catch(err){}
+}
+cargarEntidades();
+
+/* ---------- Paso 1: rol (1 toque) ---------- */
+function elegirRol(r){
+  rol = r;
+  document.querySelectorAll("#roles button").forEach(b =>
+    b.classList.toggle("activo", b.dataset.rol === r));
+  msg("Escriba su número de documento");
+  render();
+  $("docInput").focus();
 }
 
-window.onload = cargarDatos;
+/* ---------- Paso 2: documento → búsqueda automática ---------- */
+function alEscribirDoc(){
+  clearTimeout(timer);
+  seq++;
+  const d = idDoc($("docInput").value);
 
-/* VISTA */
-function cambiarVista(){
+  if(llenado){ limpiarCampos(); llenado = false; }
+  persona = null; editando = false; buscado = "";
 
-document.getElementById("zonaCedula").classList.remove("hidden");
-document.getElementById("zonaIngreso").classList.remove("hidden");
-
-const rol = document.getElementById("rolSelect").value;
-
-if(rol === "CONTRATISTA" || rol === "PROVEEDOR"){
-document.getElementById("zonaSalida").classList.remove("hidden");
-}else{
-document.getElementById("zonaSalida").classList.add("hidden");
-}
-}
-
-/* USUARIO */
-function getUser(){
-
-const doc = document.getElementById("docInput").value.trim();
-if(!doc) return null;
-
-for(let i = data.length - 1; i >= 0; i--){
-if(String(data[i].doc).trim() === doc){
-return data[i];
-}
-}
-
-return null;
-}
-
-/* BIENVENIDA */
-document.getElementById("docInput").addEventListener("input", function(){
-
-const doc = this.value.trim();
-const mensaje = document.getElementById("mensaje");
-
-if(!doc){
-mensaje.innerText = "";
-return;
-}
-
-const user = getUser();
-
-if(user && user.nombre){
-mensaje.innerText = "Bienvenido nuevamente, " + user.nombre.split(" ")[0] + " 👋";
-
-}else{
-mensaje.innerText = "Bienvenido a nuestras instalaciones 😊";
-}
-
-});
-
-/* NORMALIZAR ROL */
-function normalizarRol(rol){
-
-if(!rol) return "";
-
-const r = rol.toLowerCase();
-
-if(r.includes("visit")) return "VISITANTE";
-if(r.includes("contra")) return "CONTRATISTA";
-if(r.includes("prove")) return "PROVEEDOR";
-
-return rol;
-}
-
-/* NORMALIZAR DOCUMENTO */
-function normalizarTipoDoc(tipo){
-
-if(!tipo) return "";
-
-const t = tipo.toLowerCase();
-
-if(t.includes("ciudad")) return "Cedula de Ciudadania";
-if(t.includes("identidad")) return "Tarjeta de Identidad";
-if(t.includes("extranjer")) return "Cedula de Extranjeria";
-if(t.includes("pasaporte")) return "Pasaporte";
-
-return tipo;
-}
-
-/* INGRESO */
-function irIngreso(){
-
-const doc = document.getElementById("docInput").value.trim();
-const rol = document.getElementById("rolSelect").value;
-const tipoDoc = document.getElementById("tipoDocInput").value;
-
-if(!doc || !rol || !tipoDoc){
-alert("Complete todos los campos");
-return;
-}
-
-const user = getUser();
-
-const form = "https://docs.google.com/forms/d/e/1FAIpQLSd0NQ4XvHoMeSLRNJvas_t_7ufz9QxDUHf3erdBoiXqzd-aVQ/viewform";
-
-const url =
-form +
-"?usp=pp_url" +
-"&entry.1086354848=" + encodeURIComponent(normalizarRol(rol)) +
-"&entry.1899230705=" + encodeURIComponent(user?.nombre || "") +
-"&entry.2083119061=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
-"&entry.311902120=" + encodeURIComponent(doc) +
-"&entry.477144471=" + encodeURIComponent(user?.contacto || "") +
-"&entry.1527361506=" + encodeURIComponent(user?.entidad || "") +
-"&entry.1268448003=" + encodeURIComponent(user?.placa || "") +
-"&entry.1316902717=" + encodeURIComponent(user?.emergencia || "") +
-"&entry.539345216=" + encodeURIComponent(user?.parentesco || "");
-
-window.location.href = url;
-}
-
-/* SALIDA */
-function irSalida(){
-
-  const doc = document.getElementById("docInput").value.trim();
-  const tipoDoc = document.getElementById("tipoDocInput").value;
-
-  if(!doc || !tipoDoc){
-    alert("Complete los campos");
+  if(d.length < 4){
+    cargando = false;
+    if(rol) msg("Escriba su número de documento");
+    render();
     return;
   }
+  cargando = true;
+  msg("Buscando…");
+  render();
+  timer = setTimeout(() => buscarPersona(d), 300);
+}
 
-  const user = getUser();
+async function buscarPersona(d){
+  const mi = seq;
+  let p = null;
+  try{
+    const snap = await db.collection("personas").doc(d).get();
+    p = snap.exists ? snap.data() : null;
+  }catch(e){ console.error(e); }
+  if(mi !== seq) return;          // el usuario siguió escribiendo
 
-  if(!user){
-    alert("Usuario no encontrado");
-    return;
+  persona = p;
+  buscado = d;
+  cargando = false;
+
+  if(persona){
+    if(persona.tipoDoc) $("tipoDocInput").value = persona.tipoDoc;
+    llenarCampos(persona);
+    llenado = true;
   }
 
-  const form = "https://docs.google.com/forms/d/e/1FAIpQLSedPNuvXarpvh2t9ssrBUa3AEPI8ZIu20CTpZa9tGcklEGKwQ/formResponse";
-
-  const params =
-    "?usp=pp_url" +
-    "&entry.349719305=" + encodeURIComponent(normalizarRol(user.rol)) +
-    "&entry.232043619=" + encodeURIComponent(user.nombre || "") +
-    "&entry.861901166=" + encodeURIComponent(normalizarTipoDoc(tipoDoc)) +
-    "&entry.1077137573=" + encodeURIComponent(user.doc || "");
-
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = form + params;
-
-  document.body.appendChild(iframe);
-
-  document.getElementById("mensaje").innerText =
-    "✅ Se registró exitosamente su salida";
-
-  document.getElementById("docInput").value = "";
-  document.getElementById("tipoDocInput").value = "";
-
-  setTimeout(() => {
-    iframe.remove();
-  }, 3000);
+  if(esConocido()){
+    msg("Bienvenido nuevamente, " + persona.nombre.split(" ")[0] + " 👋");
+  }else{
+    msg("Bienvenido a nuestras instalaciones 😊 Complete sus datos");
+  }
+  render();
 }
-</script>  </body>
 
-</html>    
+function llenarCampos(p){ CAMPOS.forEach(c => { $(c).value = p[c] || ""; }); }
+function limpiarCampos(){ CAMPOS.forEach(c => { $(c).value = ""; }); }
+function leerCampos(){
+  const o = {};
+  CAMPOS.forEach(c => { o[c] = $(c).value.trim(); });
+  o.placa = o.placa.toUpperCase().replace(/[\s-]/g, "");
+  return o;
+}
+
+function editar(){
+  editando = true;
+  render();
+  $("nombre").focus();
+}
+
+/* ---------- Qué se muestra en cada momento ---------- */
+function render(){
+  const d = idDoc($("docInput").value);
+  const listo = !!rol && d.length >= 4 && !cargando && buscado === d;
+  const conocido = esConocido();
+
+  $("zonaDoc").classList.toggle("hidden", !rol);
+  $("zonaDatos").classList.toggle("hidden", !listo);
+  if(!listo) return;
+
+  const resumen = conocido && !editando;
+  $("resumen").classList.toggle("hidden", !resumen);
+  $("campos").classList.toggle("hidden", resumen);
+
+  if(resumen){
+    $("resNombre").innerText = persona.nombre;
+    $("resDetalle").innerText = [persona.entidad, persona.placa].filter(Boolean).join(" · ");
+  }
+
+  const puedeSalir = !!persona && (rol === "CONTRATISTA" || rol === "PROVEEDOR");
+  $("btnSalida").classList.toggle("hidden", !puedeSalir);
+}
+
+/* ---------- Registrar ingreso ---------- */
+async function registrarIngreso(){
+  const doc = idDoc($("docInput").value);
+  const tipoDoc = $("tipoDocInput").value;
+  if(!rol || !doc || !tipoDoc){ msg("Complete todos los campos", "error"); return; }
+
+  const usarGuardados = esConocido() && !editando;
+  const datos = usarGuardados ? {
+    nombre: persona.nombre || "",
+    contacto: persona.contacto || "",
+    entidad: persona.entidad || "",
+    placa: persona.placa || "",
+    emergenciaNombre: persona.emergenciaNombre || "",
+    emergencia: persona.emergencia || "",
+    parentesco: persona.parentesco || ""
+  } : leerCampos();
+
+  if(datos.nombre.length < 3){ msg("Escriba su nombre completo", "error"); $("nombre").focus(); return; }
+  if(datos.contacto.replace(/\D/g, "").length < 7){ msg("Escriba un teléfono válido", "error"); $("contacto").focus(); return; }
+
+  const btn = $("btnIngreso");
+  btn.disabled = true;
+  try{
+    const ts = firebase.firestore.FieldValue.serverTimestamp();
+    const batch = db.batch();
+
+    batch.set(db.collection("personas").doc(doc), {
+      ...datos, doc, tipoDoc, rol, actualizado: ts
+    }, { merge: true });
+
+    batch.set(db.collection("movimientos").doc(), {
+      tipo: "INGRESO", rol, tipoDoc, doc, ...datos,
+      fechaDia: hoyStr(), ts
+    });
+
+    await batch.commit();
+    recordarEntidad(datos.entidad);
+    cargarEntidades();
+    terminar("✅ Ingreso registrado. ¡Bienvenido, " + datos.nombre.split(" ")[0] + "!");
+  }catch(e){
+    console.error(e);
+    msg("No se pudo registrar. Verifique la conexión e intente de nuevo.", "error");
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ---------- Registrar salida ---------- */
+async function registrarSalida(){
+  const doc = idDoc($("docInput").value);
+  const tipoDoc = $("tipoDocInput").value;
+  if(!doc || !persona){ msg("Usuario no encontrado", "error"); return; }
+
+  const btn = $("btnSalida");
+  btn.disabled = true;
+  try{
+    await db.collection("movimientos").add({
+      tipo: "SALIDA",
+      rol: normalizarRol(persona.rol || rol),
+      tipoDoc,
+      doc,
+      nombre: persona.nombre || "",
+      entidad: persona.entidad || "",
+      placa: persona.placa || "",
+      contacto: persona.contacto || "",
+      fechaDia: hoyStr(),
+      ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    terminar("✅ Se registró exitosamente su salida");
+  }catch(e){
+    console.error(e);
+    msg("No se pudo registrar. Verifique la conexión e intente de nuevo.", "error");
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* Deja el formulario listo para la siguiente persona */
+function terminar(texto){
+  seq++;
+  rol = ""; persona = null; buscado = ""; cargando = false; editando = false; llenado = false;
+  $("docInput").value = "";
+  $("tipoDocInput").value = "Cedula de Ciudadania";
+  limpiarCampos();
+  document.querySelectorAll("#roles button").forEach(b => b.classList.remove("activo"));
+  render();
+  msg(texto, "ok");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ---------- Enter / "Siguiente" del teclado salta al próximo campo ---------- */
+document.addEventListener("keydown", e => {
+  if(e.key !== "Enter" || e.target.tagName !== "INPUT") return;
+  e.preventDefault();
+
+  if(e.target.id === "docInput"){
+    if(!$("campos").classList.contains("hidden")) $("nombre").focus();
+    else e.target.blur();
+    return;
+  }
+  const inputs = [...$("campos").querySelectorAll("input")];
+  const i = inputs.indexOf(e.target);
+  if(i === -1) return;
+  if(i < inputs.length - 1) inputs[i + 1].focus();
+  else registrarIngreso();
+});
+</script>
+</body>
+</html>
