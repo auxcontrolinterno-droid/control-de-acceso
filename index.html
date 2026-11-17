@@ -165,6 +165,32 @@ label{display:block;text-align:left;font-size:12px;color:#555;margin:0 0 4px 4px
       </div>
     </div>
 
+    <!-- Destino: se pregunta siempre, en cada ingreso -->
+    <div id="zonaDestino">
+      <label for="destino">¿Hacia dónde se dirige? *</label>
+      <select id="destino" onchange="alCambiarDestino()">
+        <option value="">Seleccione…</option>
+        <option value="Zona escolar">Zona escolar</option>
+        <option value="Canchas">Canchas</option>
+        <option value="Polideportivo">Polideportivo</option>
+        <option value="Cafetorium">Cafetorium</option>
+        <option value="Edificio administrativo">Edificio administrativo</option>
+        <option value="Centro de innovación">Centro de innovación</option>
+        <option value="Dpto. compras">Dpto. compras</option>
+        <option value="Área cocina">Área cocina</option>
+      </select>
+      <div id="zonaSub" class="hidden">
+        <label for="subDestino">Sección de la zona escolar *</label>
+        <select id="subDestino">
+          <option value="">Seleccione…</option>
+          <option value="Nido">Nido</option>
+          <option value="Preprimaria">Preprimaria</option>
+          <option value="Primaria">Primaria</option>
+          <option value="Bachillerato">Bachillerato</option>
+        </select>
+      </div>
+    </div>
+
     <button class="btn ingreso" id="btnIngreso" onclick="registrarIngreso()">Registrar ingreso</button>
     <button class="btn salida hidden" id="btnSalida" onclick="registrarSalida()">Registrar salida</button>
   </div>
@@ -300,6 +326,12 @@ async function buscarPersona(d){
   render();
 }
 
+function alCambiarDestino(){
+  const esc = $("destino").value === "Zona escolar";
+  $("zonaSub").classList.toggle("hidden", !esc);
+  if(!esc) $("subDestino").value = "";
+}
+
 function llenarCampos(p){ CAMPOS.forEach(c => { $(c).value = p[c] || ""; }); }
 function limpiarCampos(){ CAMPOS.forEach(c => { $(c).value = ""; }); }
 function leerCampos(){
@@ -358,6 +390,11 @@ async function registrarIngreso(){
   if(datos.nombre.length < 3){ msg("Escriba su nombre completo", "error"); $("nombre").focus(); return; }
   if(datos.contacto.replace(/\D/g, "").length < 7){ msg("Escriba un teléfono válido", "error"); $("contacto").focus(); return; }
 
+  const area = $("destino").value, sub = $("subDestino").value;
+  if(!area){ msg("Seleccione hacia dónde se dirige", "error"); $("destino").focus(); return; }
+  if(area === "Zona escolar" && !sub){ msg("Seleccione la sección de la zona escolar", "error"); $("subDestino").focus(); return; }
+  const destino = area === "Zona escolar" ? "Zona escolar - " + sub : area;
+
   const btn = $("btnIngreso");
   btn.disabled = true;
   try{
@@ -370,7 +407,7 @@ async function registrarIngreso(){
 
     batch.set(db.collection("movimientos").doc(), {
       tipo: "INGRESO", rol, tipoDoc, doc, ...datos,
-      fechaDia: hoyStr(), ts
+      destino, fechaDia: hoyStr(), ts
     });
 
     await batch.commit();
@@ -422,6 +459,7 @@ function terminar(texto){
   $("docInput").value = "";
   $("tipoDocInput").value = "Cedula de Ciudadania";
   limpiarCampos();
+  $("destino").value = ""; $("subDestino").value = ""; $("zonaSub").classList.add("hidden");
   document.querySelectorAll("#roles button").forEach(b => b.classList.remove("activo"));
   render();
   msg(texto, "ok");
